@@ -12,6 +12,7 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Locale;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
@@ -19,16 +20,17 @@ import net.minecraft.network.chat.Component;
 import net.neoforged.neoforge.network.PacketDistributor;
 
 public final class TitleManagerScreen extends Screen {
-    private static final int FORM_MAX_WIDTH = 300;
-    private static final int LIST_MAX_WIDTH = 320;
-    private static final int COLUMN_GAP = 14;
     private static final int ROW_HEIGHT = 22;
     private static final int CONTROL_HEIGHT = 20;
-    private static final int CONTROL_GAP = 4;
+    private static final int CONTROL_GAP = 5;
+    private static final int LABEL_GAP = 3;
+    private static final int SECTION_GAP = 12;
+    private static final int SCROLL_STEP = 24;
 
     private final OpenTitleManagerPayload payload;
     private String selectedTitleId = "";
     private int titleScroll;
+    private int editorScroll;
 
     private EditBox idBox;
     private EditBox textBox;
@@ -52,73 +54,6 @@ public final class TitleManagerScreen extends Screen {
     @Override
     protected void init() {
         Layout layout = layout();
-        int width = layout.formWidth();
-        int x = layout.formX();
-
-        this.idBox = new EditBox(
-                this.font,
-                x,
-                layout.idY(),
-                width,
-                CONTROL_HEIGHT,
-                Component.translatable("tagvyn.gui.titles.id")
-        );
-        this.idBox.setMaxLength(64);
-        this.addRenderableWidget(this.idBox);
-
-        this.textBox = new EditBox(
-                this.font,
-                x,
-                layout.textY(),
-                width,
-                CONTROL_HEIGHT,
-                Component.translatable("tagvyn.gui.titles.text")
-        );
-        this.textBox.setMaxLength(128);
-        this.addRenderableWidget(this.textBox);
-
-        this.colorBox = new EditBox(
-                this.font,
-                x,
-                layout.colorY(),
-                width,
-                CONTROL_HEIGHT,
-                Component.translatable("tagvyn.gui.titles.color")
-        );
-        this.colorBox.setMaxLength(7);
-        this.colorBox.setValue("#FFFFFF");
-        this.addRenderableWidget(this.colorBox);
-
-        int half = width / 2;
-        this.primarySaveButton = this.addRenderableWidget(Button.builder(
-                Component.translatable("tagvyn.gui.titles.create_text"),
-                button -> saveMetadataOrCreateText()
-        ).bounds(x, layout.primaryActionsY(), half - 2, CONTROL_HEIGHT).build());
-
-        this.saveImageButton = this.addRenderableWidget(Button.builder(
-                Component.translatable("tagvyn.gui.titles.save_image"),
-                button -> saveImage()
-        ).bounds(x + half + 2, layout.primaryActionsY(), width - half - 2, CONTROL_HEIGHT).build());
-
-        this.newButton = this.addRenderableWidget(Button.builder(
-                Component.translatable("tagvyn.gui.titles.new"),
-                button -> newTitle()
-        ).bounds(x, layout.secondaryActionsY(), half - 2, CONTROL_HEIGHT).build());
-
-        this.deleteButton = this.addRenderableWidget(Button.builder(
-                Component.translatable("tagvyn.gui.titles.delete_selected"),
-                button -> deleteSelectedTitle()
-        ).bounds(x + half + 2, layout.secondaryActionsY(), width - half - 2, CONTROL_HEIGHT).build());
-
-        this.titleItemButton = this.addRenderableWidget(Button.builder(
-                Component.translatable("tagvyn.gui.titles.give_item"),
-                button -> giveTitleItem()
-        ).bounds(x, layout.itemY(), width, CONTROL_HEIGHT).build());
-
-        this.addRenderableWidget(Button.builder(
-                Component.translatable("tagvyn.gui.back"),
-                button -> PacketDistributor.sendToServer(new AdminDashboardActionPayload("dashboard"))
-        ).bounds(x, layout.backY(), width, CONTROL_HEIGHT).build());
 
         this.searchBox = new EditBox(
                 this.font,
@@ -131,9 +66,98 @@ public final class TitleManagerScreen extends Screen {
         this.searchBox.setMaxLength(64);
         this.searchBox.setResponder(value -> {
             this.titleScroll = 0;
-            clampScroll();
+            clampTitleScroll();
         });
         this.addRenderableWidget(this.searchBox);
+
+        this.idBox = new EditBox(
+                this.font,
+                layout.editorX(),
+                editorScreenY(layout, layout.idY()),
+                layout.editorContentWidth(),
+                CONTROL_HEIGHT,
+                Component.translatable("tagvyn.gui.titles.id")
+        );
+        this.idBox.setMaxLength(64);
+        this.addRenderableWidget(this.idBox);
+
+        this.textBox = new EditBox(
+                this.font,
+                layout.editorX(),
+                editorScreenY(layout, layout.textY()),
+                layout.editorContentWidth(),
+                CONTROL_HEIGHT,
+                Component.translatable("tagvyn.gui.titles.text")
+        );
+        this.textBox.setMaxLength(128);
+        this.addRenderableWidget(this.textBox);
+
+        this.colorBox = new EditBox(
+                this.font,
+                layout.editorX(),
+                editorScreenY(layout, layout.colorY()),
+                layout.editorContentWidth(),
+                CONTROL_HEIGHT,
+                Component.translatable("tagvyn.gui.titles.color")
+        );
+        this.colorBox.setMaxLength(7);
+        this.colorBox.setValue("#FFFFFF");
+        this.addRenderableWidget(this.colorBox);
+
+        this.primarySaveButton = this.addRenderableWidget(Button.builder(
+                Component.translatable("tagvyn.gui.titles.create_text"),
+                button -> saveMetadataOrCreateText()
+        ).bounds(
+                layout.editorX(),
+                editorScreenY(layout, layout.primarySaveY()),
+                layout.editorContentWidth(),
+                CONTROL_HEIGHT
+        ).build());
+
+        this.saveImageButton = this.addRenderableWidget(Button.builder(
+                Component.translatable("tagvyn.gui.titles.save_image"),
+                button -> saveImage()
+        ).bounds(
+                layout.editorX(),
+                editorScreenY(layout, layout.saveImageY()),
+                layout.editorContentWidth(),
+                CONTROL_HEIGHT
+        ).build());
+
+        this.newButton = this.addRenderableWidget(Button.builder(
+                Component.translatable("tagvyn.gui.titles.new"),
+                button -> newTitle()
+        ).bounds(
+                layout.editorX(),
+                editorScreenY(layout, layout.newY()),
+                layout.editorContentWidth(),
+                CONTROL_HEIGHT
+        ).build());
+
+        this.deleteButton = this.addRenderableWidget(Button.builder(
+                Component.translatable("tagvyn.gui.titles.delete_selected"),
+                button -> deleteSelectedTitle()
+        ).bounds(
+                layout.editorX(),
+                editorScreenY(layout, layout.deleteY()),
+                layout.editorContentWidth(),
+                CONTROL_HEIGHT
+        ).build());
+
+        this.titleItemButton = this.addRenderableWidget(Button.builder(
+                Component.translatable("tagvyn.gui.titles.give_item"),
+                button -> giveTitleItem()
+        ).bounds(
+                layout.editorX(),
+                editorScreenY(layout, layout.itemY()),
+                layout.editorContentWidth(),
+                CONTROL_HEIGHT
+        ).build());
+
+        this.addRenderableWidget(Button.builder(
+                Component.translatable("tagvyn.gui.back"),
+                button -> PacketDistributor.sendToServer(new AdminDashboardActionPayload("dashboard"))
+        ).bounds(layout.editorX(), layout.backY(), layout.editorWidth(), CONTROL_HEIGHT).build());
 
         this.idBox.setResponder(value -> updateButtons());
         this.textBox.setResponder(value -> updateButtons());
@@ -144,6 +168,8 @@ public final class TitleManagerScreen extends Screen {
         } else {
             newTitle();
         }
+        clampEditorScroll();
+        updateEditorWidgets();
         updateButtons();
     }
 
@@ -211,12 +237,14 @@ public final class TitleManagerScreen extends Screen {
         this.selectedPng = null;
         this.selectedFile = "";
         this.localError = "";
+        this.editorScroll = 0;
         if (this.idBox != null) {
             this.idBox.setEditable(true);
             this.idBox.setValue("");
         }
         if (this.textBox != null) this.textBox.setValue("");
         if (this.colorBox != null) this.colorBox.setValue("#FFFFFF");
+        updateEditorWidgets();
         updateButtons();
     }
 
@@ -227,12 +255,14 @@ public final class TitleManagerScreen extends Screen {
         this.selectedPng = null;
         this.selectedFile = "";
         this.localError = "";
+        this.editorScroll = 0;
         if (this.idBox != null) {
             this.idBox.setValue(summary.id());
             this.idBox.setEditable(false);
         }
         if (this.textBox != null) this.textBox.setValue(summary.text());
         if (this.colorBox != null) this.colorBox.setValue(String.format("#%06X", summary.color() & 0xFFFFFF));
+        updateEditorWidgets();
         updateButtons();
     }
 
@@ -323,16 +353,51 @@ public final class TitleManagerScreen extends Screen {
         Layout layout = layout();
         if (inside(mouseX, mouseY, layout.listX(), layout.rowsY(), layout.listWidth(), layout.rowsHeight())) {
             this.titleScroll -= (int) Math.signum(scrollY);
-            clampScroll();
+            clampTitleScroll();
+            return true;
+        }
+        if (inside(mouseX, mouseY, layout.editorX(), layout.viewportTop(), layout.editorWidth(), layout.viewportHeight())) {
+            this.editorScroll -= (int) Math.signum(scrollY) * SCROLL_STEP;
+            clampEditorScroll();
+            updateEditorWidgets();
             return true;
         }
         return super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
     }
 
-    private void clampScroll() {
+    private void clampTitleScroll() {
         Layout layout = layout();
         int visible = Math.max(1, layout.rowsHeight() / ROW_HEIGHT);
         this.titleScroll = Math.max(0, Math.min(this.titleScroll, Math.max(0, filteredTitles().size() - visible)));
+    }
+
+    private void clampEditorScroll() {
+        Layout layout = layout();
+        this.editorScroll = Math.max(0, Math.min(this.editorScroll, Math.max(0, layout.contentHeight() - layout.viewportHeight())));
+    }
+
+    private int editorScreenY(Layout layout, int contentY) {
+        return layout.viewportTop() + contentY - this.editorScroll;
+    }
+
+    private void updateEditorWidgets() {
+        Layout layout = layout();
+        placeEditorWidget(this.idBox, editorScreenY(layout, layout.idY()), layout);
+        placeEditorWidget(this.textBox, editorScreenY(layout, layout.textY()), layout);
+        placeEditorWidget(this.colorBox, editorScreenY(layout, layout.colorY()), layout);
+        placeEditorWidget(this.primarySaveButton, editorScreenY(layout, layout.primarySaveY()), layout);
+        placeEditorWidget(this.saveImageButton, editorScreenY(layout, layout.saveImageY()), layout);
+        placeEditorWidget(this.newButton, editorScreenY(layout, layout.newY()), layout);
+        placeEditorWidget(this.deleteButton, editorScreenY(layout, layout.deleteY()), layout);
+        placeEditorWidget(this.titleItemButton, editorScreenY(layout, layout.itemY()), layout);
+    }
+
+    private void placeEditorWidget(AbstractWidget widget, int y, Layout layout) {
+        if (widget == null) return;
+        widget.setY(y);
+        boolean visible = y >= layout.viewportTop() && y + widget.getHeight() <= layout.viewportBottom();
+        widget.visible = visible;
+        if (!visible) widget.setFocused(false);
     }
 
     private static boolean validPng(byte[] bytes) {
@@ -357,64 +422,20 @@ public final class TitleManagerScreen extends Screen {
     @Override
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
         Layout layout = layout();
+        clampEditorScroll();
+        updateEditorWidgets();
+
         graphics.fill(0, 0, this.width, this.height, 0xD0101010);
-        graphics.fill(
-                layout.formX() - 7,
-                layout.panelTop(),
-                layout.formX() + layout.formWidth() + 7,
-                layout.formBottom(),
-                0x70181818
-        );
-        graphics.fill(
-                layout.listX() - 7,
-                layout.listTop(),
-                layout.listX() + layout.listWidth() + 7,
-                layout.listBottom(),
-                0x70181818
-        );
+        graphics.fill(layout.listX() - 6, layout.panelTop(), layout.listX() + layout.listWidth() + 6, layout.bottom() + 5, 0x70181818);
+        graphics.fill(layout.editorX() - 6, layout.panelTop(), layout.editorX() + layout.editorWidth() + 6, layout.bottom() + 5, 0x70181818);
 
         super.render(graphics, mouseX, mouseY, partialTick);
 
-        graphics.drawCenteredString(this.font, this.title, this.width / 2, 14, 0xFFFFFF);
-
-        String selected = this.selectedTitleId.isBlank()
-                ? Component.translatable("tagvyn.gui.titles.new_mode").getString()
-                : Component.translatable("tagvyn.gui.titles.selected", this.selectedTitleId).getString();
-        graphics.drawString(
-                this.font,
-                fitToWidth(selected, layout.formWidth()),
-                layout.formX(),
-                layout.statusY(),
-                0xD0D0D0
-        );
-
-        graphics.drawString(this.font, Component.translatable("tagvyn.gui.titles.id"), layout.formX(), layout.idLabelY(), 0xA0A0A0);
-        graphics.drawString(this.font, Component.translatable("tagvyn.gui.titles.text"), layout.formX(), layout.textLabelY(), 0xA0A0A0);
-        graphics.drawString(this.font, Component.translatable("tagvyn.gui.titles.color"), layout.formX(), layout.colorLabelY(), 0xA0A0A0);
-
-        Component drop = this.selectedPng == null
-                ? Component.translatable("tagvyn.gui.titles.drop_png_short")
-                : Component.translatable("tagvyn.gui.titles.selected_png", this.selectedFile, this.selectedPng.length / 1024);
-        graphics.drawString(
-                this.font,
-                fitToWidth(drop.getString(), layout.formWidth()),
-                layout.formX(),
-                layout.helperY(),
-                this.selectedPng == null ? 0x909090 : 0x80FF80
-        );
-        if (!this.localError.isBlank()) {
-            graphics.drawString(
-                    this.font,
-                    fitToWidth(Component.translatable(this.localError).getString(), layout.formWidth()),
-                    layout.formX(),
-                    layout.errorY(),
-                    0xFF7070
-            );
-        }
+        graphics.drawCenteredString(this.font, this.title, this.width / 2, layout.titleY(), 0xFFFFFF);
 
         graphics.drawString(
                 this.font,
-                Component.translatable("tagvyn.gui.titles.existing", this.payload.titles().size()),
+                fitToWidth(Component.translatable("tagvyn.gui.titles.existing", this.payload.titles().size()).getString(), layout.listWidth()),
                 layout.listX(),
                 layout.listHeaderY(),
                 0xD0D0D0
@@ -427,6 +448,66 @@ public final class TitleManagerScreen extends Screen {
                 0xA0A0A0
         );
         renderTitleList(graphics, layout);
+
+        graphics.enableScissor(layout.editorX(), layout.viewportTop(), layout.editorX() + layout.editorWidth(), layout.viewportBottom());
+        renderEditor(graphics, layout);
+        graphics.disableScissor();
+        renderScrollbar(graphics, layout);
+    }
+
+    private void renderEditor(GuiGraphics graphics, Layout layout) {
+        String selected = this.selectedTitleId.isBlank()
+                ? Component.translatable("tagvyn.gui.titles.new_mode").getString()
+                : Component.translatable("tagvyn.gui.titles.selected", this.selectedTitleId).getString();
+        graphics.drawString(
+                this.font,
+                fitToWidth(selected, layout.editorContentWidth()),
+                layout.editorX(),
+                editorScreenY(layout, layout.statusY()),
+                0xD0D0D0
+        );
+
+        graphics.drawString(
+                this.font,
+                Component.translatable("tagvyn.gui.titles.id"),
+                layout.editorX(),
+                editorScreenY(layout, layout.idLabelY()),
+                0xA0A0A0
+        );
+        graphics.drawString(
+                this.font,
+                Component.translatable("tagvyn.gui.titles.text"),
+                layout.editorX(),
+                editorScreenY(layout, layout.textLabelY()),
+                0xA0A0A0
+        );
+        graphics.drawString(
+                this.font,
+                Component.translatable("tagvyn.gui.titles.color"),
+                layout.editorX(),
+                editorScreenY(layout, layout.colorLabelY()),
+                0xA0A0A0
+        );
+
+        Component drop = this.selectedPng == null
+                ? Component.translatable("tagvyn.gui.titles.drop_png_short")
+                : Component.translatable("tagvyn.gui.titles.selected_png", this.selectedFile, this.selectedPng.length / 1024);
+        graphics.drawString(
+                this.font,
+                fitToWidth(drop.getString(), layout.editorContentWidth()),
+                layout.editorX(),
+                editorScreenY(layout, layout.helperY()),
+                this.selectedPng == null ? 0x909090 : 0x80FF80
+        );
+        if (!this.localError.isBlank()) {
+            graphics.drawString(
+                    this.font,
+                    fitToWidth(Component.translatable(this.localError).getString(), layout.editorContentWidth()),
+                    layout.editorX(),
+                    editorScreenY(layout, layout.errorY()),
+                    0xFF7070
+            );
+        }
     }
 
     private void renderTitleList(GuiGraphics graphics, Layout layout) {
@@ -462,6 +543,18 @@ public final class TitleManagerScreen extends Screen {
         }
     }
 
+    private void renderScrollbar(GuiGraphics graphics, Layout layout) {
+        int maxScroll = Math.max(0, layout.contentHeight() - layout.viewportHeight());
+        if (maxScroll <= 0) return;
+        int x = layout.editorX() + layout.editorWidth() - 3;
+        int trackHeight = layout.viewportHeight();
+        int thumbHeight = Math.max(18, trackHeight * layout.viewportHeight() / layout.contentHeight());
+        int travel = Math.max(1, trackHeight - thumbHeight);
+        int thumbY = layout.viewportTop() + (int) ((long) this.editorScroll * travel / maxScroll);
+        graphics.fill(x, layout.viewportTop(), x + 2, layout.viewportBottom(), 0x40303030);
+        graphics.fill(x, thumbY, x + 2, thumbY + thumbHeight, 0xB0A0A0A0);
+    }
+
     private String fitToWidth(String text, int maxWidth) {
         if (text == null || text.isEmpty() || this.font.width(text) <= maxWidth) return text == null ? "" : text;
         String ellipsis = "…";
@@ -480,59 +573,66 @@ public final class TitleManagerScreen extends Screen {
     }
 
     private Layout layout() {
-        boolean sideBySide = this.width >= 440;
-        int panelTop = 40;
-        int statusY = 47;
-        int idLabelY = 63;
-        int idY = 75;
-        int textLabelY = idY + CONTROL_HEIGHT + 9;
-        int textY = textLabelY + this.font.lineHeight + 3;
-        int colorLabelY = textY + CONTROL_HEIGHT + 9;
-        int colorY = colorLabelY + this.font.lineHeight + 3;
-        int primaryActionsY = colorY + CONTROL_HEIGHT + 10;
-        int secondaryActionsY = primaryActionsY + CONTROL_HEIGHT + CONTROL_GAP;
-        int itemY = secondaryActionsY + CONTROL_HEIGHT + CONTROL_GAP;
-        int backY = itemY + CONTROL_HEIGHT + CONTROL_GAP;
-        int helperY = backY + CONTROL_HEIGHT + 8;
-        int errorY = helperY + this.font.lineHeight + 2;
-        int formBottom = errorY + this.font.lineHeight + 7;
+        boolean compact = this.height < 300;
+        int titleY = compact ? 7 : 12;
+        int panelTop = compact ? 26 : 38;
+        int bottom = Math.max(panelTop + 150, this.height - 12);
 
-        int formWidth;
-        int formX;
-        int listWidth;
-        int listX;
-        int listTop;
-
-        if (sideBySide) {
-            int usableWidth = Math.max(1, this.width - 32 - COLUMN_GAP);
-            formWidth = Math.min(FORM_MAX_WIDTH, Math.max(220, usableWidth * 3 / 5));
-            listWidth = Math.min(LIST_MAX_WIDTH, usableWidth - formWidth);
-            if (listWidth < 140) {
-                listWidth = 140;
-                formWidth = Math.max(180, usableWidth - listWidth);
-            }
-            int totalWidth = formWidth + COLUMN_GAP + listWidth;
-            formX = Math.max(10, (this.width - totalWidth) / 2);
-            listX = formX + formWidth + COLUMN_GAP;
-            listTop = panelTop;
-        } else {
-            formWidth = Math.max(140, Math.min(FORM_MAX_WIDTH, this.width - 32));
-            formX = (this.width - formWidth) / 2;
-            listWidth = formWidth;
-            listX = formX;
-            listTop = formBottom + 10;
+        int totalWidth = Math.max(290, Math.min(720, this.width - 24));
+        int gap = 12;
+        int listWidth = Math.max(92, Math.min(210, totalWidth / 3));
+        int editorWidth = totalWidth - listWidth - gap;
+        if (editorWidth < 180) {
+            listWidth = Math.max(82, totalWidth - gap - 180);
+            editorWidth = totalWidth - listWidth - gap;
         }
+        int listX = (this.width - totalWidth) / 2;
+        int editorX = listX + listWidth + gap;
+        int editorContentWidth = Math.max(80, editorWidth - 6);
 
-        int listHeaderY = listTop + 7;
+        int listHeaderY = panelTop + 5;
         int searchLabelY = listHeaderY + this.font.lineHeight + 5;
-        int searchY = searchLabelY + this.font.lineHeight + 3;
+        int searchY = searchLabelY + this.font.lineHeight + LABEL_GAP;
         int rowsY = searchY + CONTROL_HEIGHT + 6;
-        int listBottom = Math.max(rowsY + ROW_HEIGHT + 5, this.height - 10);
+        int rowsHeight = Math.max(ROW_HEIGHT, bottom - rowsY);
+
+        int backY = bottom - CONTROL_HEIGHT;
+        int viewportTop = panelTop + 5;
+        int viewportBottom = Math.max(viewportTop + 50, backY - 6);
+
+        int statusY = 0;
+        int idLabelY = statusY + this.font.lineHeight + SECTION_GAP;
+        int idY = idLabelY + this.font.lineHeight + LABEL_GAP;
+        int textLabelY = idY + CONTROL_HEIGHT + SECTION_GAP;
+        int textY = textLabelY + this.font.lineHeight + LABEL_GAP;
+        int colorLabelY = textY + CONTROL_HEIGHT + SECTION_GAP;
+        int colorY = colorLabelY + this.font.lineHeight + LABEL_GAP;
+        int primarySaveY = colorY + CONTROL_HEIGHT + SECTION_GAP;
+        int saveImageY = primarySaveY + CONTROL_HEIGHT + CONTROL_GAP;
+        int newY = saveImageY + CONTROL_HEIGHT + CONTROL_GAP;
+        int deleteY = newY + CONTROL_HEIGHT + CONTROL_GAP;
+        int itemY = deleteY + CONTROL_HEIGHT + CONTROL_GAP;
+        int helperY = itemY + CONTROL_HEIGHT + SECTION_GAP;
+        int errorY = helperY + this.font.lineHeight + 3;
+        int contentHeight = errorY + this.font.lineHeight + 8;
 
         return new Layout(
-                formX,
-                formWidth,
+                titleY,
                 panelTop,
+                bottom,
+                listX,
+                listWidth,
+                listHeaderY,
+                searchLabelY,
+                searchY,
+                rowsY,
+                rowsHeight,
+                editorX,
+                editorWidth,
+                editorContentWidth,
+                backY,
+                viewportTop,
+                viewportBottom,
                 statusY,
                 idLabelY,
                 idY,
@@ -540,29 +640,34 @@ public final class TitleManagerScreen extends Screen {
                 textY,
                 colorLabelY,
                 colorY,
-                primaryActionsY,
-                secondaryActionsY,
+                primarySaveY,
+                saveImageY,
+                newY,
+                deleteY,
                 itemY,
-                backY,
                 helperY,
                 errorY,
-                formBottom,
-                listX,
-                listWidth,
-                listTop,
-                listHeaderY,
-                searchLabelY,
-                searchY,
-                rowsY,
-                listBottom,
-                sideBySide
+                contentHeight
         );
     }
 
     private record Layout(
-            int formX,
-            int formWidth,
+            int titleY,
             int panelTop,
+            int bottom,
+            int listX,
+            int listWidth,
+            int listHeaderY,
+            int searchLabelY,
+            int searchY,
+            int rowsY,
+            int rowsHeight,
+            int editorX,
+            int editorWidth,
+            int editorContentWidth,
+            int backY,
+            int viewportTop,
+            int viewportBottom,
             int statusY,
             int idLabelY,
             int idY,
@@ -570,25 +675,17 @@ public final class TitleManagerScreen extends Screen {
             int textY,
             int colorLabelY,
             int colorY,
-            int primaryActionsY,
-            int secondaryActionsY,
+            int primarySaveY,
+            int saveImageY,
+            int newY,
+            int deleteY,
             int itemY,
-            int backY,
             int helperY,
             int errorY,
-            int formBottom,
-            int listX,
-            int listWidth,
-            int listTop,
-            int listHeaderY,
-            int searchLabelY,
-            int searchY,
-            int rowsY,
-            int listBottom,
-            boolean sideBySide
+            int contentHeight
     ) {
-        int rowsHeight() {
-            return Math.max(ROW_HEIGHT, this.listBottom - 5 - this.rowsY);
+        int viewportHeight() {
+            return Math.max(1, this.viewportBottom - this.viewportTop);
         }
     }
 
