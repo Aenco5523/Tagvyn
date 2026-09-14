@@ -6,7 +6,7 @@ Tagvyn is a GUI-first nickname and title system for Minecraft. The public integr
 
 > **Current API version:** `2`
 >
-> **Important:** The exact Minecraft version and mod loader are build-specific. Do not assume one permanent target from this Wiki. Check the release/JAR filename (`Tagvyn-<loader>-<minecraft-version>-<mod-version>.jar`) and the corresponding source branch/release.
+> **Important:** The exact Minecraft version and mod loader are build-specific. Do not assume one permanent target from this Wiki.
 
 ## Start here
 
