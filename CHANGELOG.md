@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.4.1
+
+- Fixed the first-login nickname prompt opening the removed `/tagvyn nick gui` command path.
+- The clickable prompt now opens the nickname GUI through `/tagvyn nick`.
+- Updated the Korean prompt to: `닉네임이 설정되지 않았습니다. 이 메시지를 클릭하여 닉네임을 설정하세요.`
+- Updated the English prompt to match the same meaning.
+
 ## 0.3.0
 
 - Added an OP-only title manager GUI opened with `/tagvyn titles`.
