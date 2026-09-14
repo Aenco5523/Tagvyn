@@ -5,6 +5,7 @@ import dev.aenco.tagvyn.command.TagvynCommands;
 import dev.aenco.tagvyn.config.TagvynConfig;
 import dev.aenco.tagvyn.data.TagvynAttachments;
 import dev.aenco.tagvyn.display.TagvynDisplay;
+import dev.aenco.tagvyn.network.TagvynNetwork;
 import dev.aenco.tagvyn.service.TagvynMessages;
 import dev.aenco.tagvyn.service.TagvynService;
 import dev.aenco.tagvyn.title.TitleRegistry;
@@ -54,6 +55,7 @@ public final class TagvynEvents {
     public static void onPlayerLogin(PlayerEvent.PlayerLoggedInEvent event) {
         if (!(event.getEntity() instanceof ServerPlayer player)) return;
         TagvynService.refreshTitleSnapshot(player);
+        TagvynNetwork.syncUploadedTitleImages(player);
         if (!player.getData(TagvynAttachments.IDENTITY).hasNickname()) {
             TagvynMessages.sendNicknamePrompt(player);
         }
