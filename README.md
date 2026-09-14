@@ -4,26 +4,47 @@ Tagvyn is a Minecraft 1.21.1 NeoForge nickname/title mod using the package `dev.
 
 ## Features
 
-- Configurable player nicknames with localized first-login nickname GUI.
+- Configurable player nicknames with a localized first-login nickname GUI.
 - Text and PNG image titles with RGB colors.
 - Titles/nicknames in display names, TAB, chat/name tags and vanilla feedback that uses player display names.
-- OP-only management commands without an `admin` command layer.
-- OP-only title manager GUI.
+- GUI-first OP administration: player management, title management and reload/sync actions are handled from the admin dashboard.
+- Searchable player manager for larger servers.
+- Searchable/selectable title manager with in-place editing and PNG replacement.
 - Public integration API (`dev.aenco.tagvyn.api.TagvynAPI`).
 - Persistent synced identity data.
 - Layout intended for future Fabric/Forge and newer-version ports.
 
-## Title manager GUI
+## Admin workflow
 
-Operators can run:
+Tagvyn is designed so server operators do not need to memorize management commands.
+
+Run:
 
 ```text
-/tagvyn titles
+/tagvyn
 ```
 
-The screen lets an operator enter a title ID, optional text and `#RRGGBB` color. To create an image title, drag a normal PNG file from the desktop onto the Minecraft window and click **Upload PNG title**.
+For an OP, this opens the **Tagvyn Admin** dashboard. From there you can:
 
-Limits in 0.3.0:
+- Search online players by account name or Tagvyn nickname.
+- Select a player from a scrollable list.
+- Set/clear their nickname and reset their nickname-change count.
+- Search titles and apply/clear a title for the selected player.
+- Open the title manager.
+- Reload Tagvyn configuration and synchronize title images.
+- Open your own nickname editor.
+
+Non-operators using `/tagvyn` are sent directly to their own nickname editor instead of the admin dashboard.
+
+## Title manager GUI
+
+Open **Title Manager** from the admin dashboard.
+
+Registered titles are shown in a searchable, scrollable list. Click a title to load its ID, display text and color into the editor. Existing title IDs are treated as fixed identifiers; you can edit text/color, replace or add a PNG, or delete the selected title without typing its ID again.
+
+Click **New Title** to return to new-title mode. To create or replace an image title, drag a normal PNG file from the desktop onto the Minecraft window and use **Add / Replace PNG**.
+
+PNG limits:
 
 - PNG only
 - Up to 512KB
@@ -37,35 +58,23 @@ config/tagvyn/images/<title-id>.png
 
 Tagvyn automatically synchronizes uploaded images to clients. Clients build an always-active generated resource pack under their local Tagvyn config directory. The private-use bitmap-font mapping required by Minecraft text rendering is generated internally; server admins do **not** need to make a resource pack, choose a glyph, or type a font ID.
 
-This lets the uploaded image render in the same text-component locations used by Tagvyn, including TAB and player display names/name tags.
-
 ## Commands
 
-Player commands:
+These are the commands that currently exist:
 
 ```text
-/tagvyn nick gui
-/tagvyn nick set <nickname>
-/tagvyn nick clear
-/tagvyn nick info
-/tagvyn title list
+/tagvyn
+/tagvyn nick
 ```
 
-OP-only commands:
+`/tagvyn`
+- OP: opens the admin dashboard.
+- Non-OP: opens the player's nickname editor.
 
-```text
-/tagvyn titles
-/tagvyn nick setfor <player> <nickname>
-/tagvyn nick clearfor <player>
-/tagvyn nick resetcount <player>
-/tagvyn title set <player> <title>
-/tagvyn title clear <player>
-/tagvyn title create text <id> <#RRGGBB> <text>
-/tagvyn title delete <id>
-/tagvyn reload
-```
+`/tagvyn nick`
+- Opens the player's nickname editor directly.
 
-Non-operators do not receive the management branches in the Brigadier command tree.
+There are **no** `/tagvyn admin`, `/tagvyn titles`, `/tagvyn title create`, `setfor`, or other management subcommands in the current GUI-first command tree. Administrative work is intentionally performed through the dashboard.
 
 ## Public API
 
@@ -116,4 +125,8 @@ JDK 21 is required.
 gradle build
 ```
 
-The included GitHub Actions workflow builds with Java 21 and NeoForge 1.21.1.
+The included GitHub Actions workflow builds with Java 21 and NeoForge 1.21.1. Build output follows the loader-aware naming rule:
+
+```text
+Tagvyn-neoforge-<version>.jar
+```
