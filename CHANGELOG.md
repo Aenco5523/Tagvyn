@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.3.0
+
+- Added an OP-only title manager GUI opened with `/tagvyn titles`.
+- Added drag-and-drop PNG title uploads from the in-game GUI.
+- Uploaded PNG files are validated and stored on the server in `config/tagvyn/images/`.
+- Added automatic title-image synchronization to connected clients.
+- Added an always-active generated client resource pack so admins no longer create bitmap fonts/glyphs manually.
+- Removed the manual `/tagvyn title create image <font> <glyph>` workflow.
+- Added API v2 methods for registering and reading uploaded PNG title images.
+
 ## 0.2.0
 
 - Added public `TagvynAPI` integration surface for other mods.
