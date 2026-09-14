@@ -98,9 +98,9 @@ Tagvyn may be released for multiple Minecraft versions and mod loaders over time
 
 ## Developer documentation
 
-Developers integrating with Tagvyn, maintaining it, or porting it to another loader/version should start with the **[Tagvyn Developer Wiki](docs/wiki/Home.md)**.
+Developers integrating with Tagvyn, maintaining it, or porting it to another loader/version should use the **[Tagvyn GitHub Wiki](https://github.com/Aenco5523/Tagvyn/wiki)**.
 
-The developer Wiki contains the public API reference, architecture, configuration behavior, title/image internals, networking notes, localization guidance, and build/porting documentation. Low-level technical details intentionally live there instead of expanding the main user README.
+The GitHub Wiki contains the public API reference, architecture, configuration behavior, title/image internals, networking notes, localization guidance, and build/porting documentation. Low-level technical details intentionally live there instead of expanding the main user README.
 
 ## License
 
