@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.6.0
+
+- Added Name Tag based title items generated from the title manager GUI.
+- Operators can select an existing title and receive a glowing title token without using a command.
+- Right-clicking a title token equips the linked title and consumes one token on successful use, except in Creative mode.
+- Tagvyn title Name Tags cannot be used to rename mobs.
+- Title items store a stable title ID, so later text/color/PNG edits are reflected when the item is used.
+- Deleted-title tokens become invalid and are not consumed.
+- Added localized item name/lore and title-item feedback messages.
+
 ## 0.5.0
 
 - Reworked player administration for larger servers: online players are now shown in a searchable, scrollable list instead of being selected one-by-one with arrow buttons.
