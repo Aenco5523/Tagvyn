@@ -44,7 +44,7 @@ public final class PlayerManagerScreen extends Screen {
         this.nicknameBox = new EditBox(
                 this.font,
                 x,
-                y + 36,
+                y + 44,
                 formWidth,
                 20,
                 Component.translatable("tagvyn.gui.players.nickname")
@@ -56,24 +56,24 @@ public final class PlayerManagerScreen extends Screen {
         this.saveNicknameButton = this.addRenderableWidget(Button.builder(
                 Component.translatable("tagvyn.gui.players.save_nickname"),
                 button -> sendPlayerAction("set_nickname", this.nicknameBox.getValue())
-        ).bounds(x, y + 62, formWidth / 2 - 2, 20).build());
+        ).bounds(x, y + 68, formWidth / 2 - 2, 20).build());
         this.addRenderableWidget(Button.builder(
                 Component.translatable("tagvyn.gui.players.clear_nickname"),
                 button -> sendPlayerAction("clear_nickname", "")
-        ).bounds(x + formWidth / 2 + 2, y + 62, formWidth / 2 - 2, 20).build());
+        ).bounds(x + formWidth / 2 + 2, y + 68, formWidth / 2 - 2, 20).build());
 
         this.addRenderableWidget(Button.builder(
                 Component.translatable("tagvyn.gui.players.reset_count"),
                 button -> sendPlayerAction("reset_count", "")
-        ).bounds(x, y + 88, formWidth, 20).build());
+        ).bounds(x, y + 92, formWidth, 20).build());
 
         this.addRenderableWidget(Button.builder(Component.literal("<"), button -> cycleTitle(-1))
-                .bounds(x, y + 124, arrowWidth, 20).build());
+                .bounds(x, y + 128, arrowWidth, 20).build());
         this.titleButton = this.addRenderableWidget(Button.builder(Component.empty(), button -> {})
-                .bounds(x + arrowWidth + 4, y + 124, centerWidth, 20).build());
+                .bounds(x + arrowWidth + 4, y + 128, centerWidth, 20).build());
         this.titleButton.active = false;
         this.addRenderableWidget(Button.builder(Component.literal(">"), button -> cycleTitle(1))
-                .bounds(x + formWidth - arrowWidth, y + 124, arrowWidth, 20).build());
+                .bounds(x + formWidth - arrowWidth, y + 128, arrowWidth, 20).build());
 
         this.applyTitleButton = this.addRenderableWidget(Button.builder(
                 Component.translatable("tagvyn.gui.players.apply_title"),
@@ -82,16 +82,16 @@ public final class PlayerManagerScreen extends Screen {
                         sendPlayerAction("set_title", this.payload.titles().get(this.titleIndex));
                     }
                 }
-        ).bounds(x, y + 150, formWidth / 2 - 2, 20).build());
+        ).bounds(x, y + 152, formWidth / 2 - 2, 20).build());
         this.addRenderableWidget(Button.builder(
                 Component.translatable("tagvyn.gui.players.clear_title"),
                 button -> sendPlayerAction("clear_title", "")
-        ).bounds(x + formWidth / 2 + 2, y + 150, formWidth / 2 - 2, 20).build());
+        ).bounds(x + formWidth / 2 + 2, y + 152, formWidth / 2 - 2, 20).build());
 
         this.addRenderableWidget(Button.builder(
                 Component.translatable("tagvyn.gui.back"),
                 button -> PacketDistributor.sendToServer(new AdminDashboardActionPayload("dashboard"))
-        ).bounds(x, y + 184, formWidth, 20).build());
+        ).bounds(x, y + 180, formWidth, 20).build());
 
         loadPlayer();
     }
@@ -175,6 +175,10 @@ public final class PlayerManagerScreen extends Screen {
     @Override
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
         graphics.fill(0, 0, this.width, this.height, 0xD0101010);
+
+        // Widgets are rendered first so labels/status text always remain on the top GUI layer.
+        super.render(graphics, mouseX, mouseY, partialTick);
+
         graphics.drawCenteredString(this.font, this.title, this.width / 2, 16, 0xFFFFFF);
         graphics.drawCenteredString(
                 this.font,
@@ -201,11 +205,9 @@ public final class PlayerManagerScreen extends Screen {
                     y + 23,
                     0x909090
             );
-            graphics.drawString(this.font, Component.translatable("tagvyn.gui.players.nickname"), x, y + 26, 0xB0B0B0);
-            graphics.drawString(this.font, Component.translatable("tagvyn.gui.players.title_label"), x, y + 114, 0xB0B0B0);
+            graphics.drawString(this.font, Component.translatable("tagvyn.gui.players.nickname"), x, y + 34, 0xB0B0B0);
+            graphics.drawString(this.font, Component.translatable("tagvyn.gui.players.title_label"), x, y + 118, 0xB0B0B0);
         }
-
-        super.render(graphics, mouseX, mouseY, partialTick);
     }
 
     @Override
