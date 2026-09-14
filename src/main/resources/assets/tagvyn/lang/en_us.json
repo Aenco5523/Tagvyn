@@ -1,0 +1,11 @@
+{
+  "tagvyn.message.nickname_set": "Nickname changed to %s.",
+  "tagvyn.message.nickname_cleared": "Nickname cleared.",
+  "tagvyn.message.nickname_limit": "You have no nickname changes left (%s/%s).",
+  "tagvyn.message.nickname_invalid": "That nickname is not allowed.",
+  "tagvyn.message.title_set": "Title set to %s.",
+  "tagvyn.message.title_cleared": "Title cleared.",
+  "tagvyn.message.title_missing": "Unknown title: %s",
+  "tagvyn.message.reload": "Tagvyn titles reloaded.",
+  "tagvyn.message.no_player": "This command can only be used by a player."
+}
