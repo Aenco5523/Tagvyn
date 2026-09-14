@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.6.3
+
+- Reworked player management around scrolling instead of trying to fit every control into one screen.
+- Player search/list stays fixed on the left while the selected-player details, nickname controls, and title controls scroll independently on the right.
+- Reworked title management into a fixed searchable title list plus a separately scrollable editor panel.
+- Kept Back buttons fixed so navigation never requires scrolling to the end of a form.
+- Stacked management actions vertically to avoid clipping longer localized button labels.
+- Added visible scroll indicators and viewport clipping so labels, inputs, buttons, and helper text no longer overlap neighboring sections.
+
 ## 0.6.2
 
 - Expanded localization from Korean/English to nine bundled client languages: English, Korean, Japanese, Simplified Chinese, Traditional Chinese, Spanish, French, German, and Brazilian Portuguese.
