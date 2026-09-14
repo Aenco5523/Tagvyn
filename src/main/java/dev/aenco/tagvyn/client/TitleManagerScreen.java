@@ -16,6 +16,10 @@ import net.minecraft.network.chat.Component;
 import net.neoforged.neoforge.network.PacketDistributor;
 
 public final class TitleManagerScreen extends Screen {
+    private static final int FORM_MAX_WIDTH = 280;
+    private static final int LIST_MAX_WIDTH = 280;
+    private static final int COLUMN_GAP = 18;
+
     private final OpenTitleManagerPayload payload;
     private EditBox idBox;
     private EditBox textBox;
@@ -34,9 +38,10 @@ public final class TitleManagerScreen extends Screen {
 
     @Override
     protected void init() {
-        int width = Math.min(280, this.width - 40);
-        int x = (this.width - width) / 2;
-        int y = Math.max(52, this.height / 2 - 72);
+        Layout layout = layout();
+        int width = layout.formWidth();
+        int x = layout.formX();
+        int y = layout.formY();
 
         this.idBox = new EditBox(this.font, x, y, width, 20, Component.translatable("tagvyn.gui.titles.id"));
         this.idBox.setMaxLength(64);
@@ -177,49 +182,146 @@ public final class TitleManagerScreen extends Screen {
 
     @Override
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+        Layout layout = layout();
         graphics.fill(0, 0, this.width, this.height, 0xD0101010);
 
-        // Render interactive widgets first. Labels and helper text are intentionally
-        // drawn afterwards so EditBox/Button backgrounds can never cover them.
+        if (layout.sideBySide()) {
+            graphics.fill(
+                    layout.listX() - 7,
+                    layout.listY() - 7,
+                    layout.listX() + layout.listWidth() + 7,
+                    layout.listBottom() + 6,
+                    0x80181818
+            );
+        }
+
+        // Widgets first, then labels/helper text so widget backgrounds never hide labels.
         super.render(graphics, mouseX, mouseY, partialTick);
 
-        int formWidth = Math.min(280, this.width - 40);
-        int x = (this.width - formWidth) / 2;
-        int y = Math.max(52, this.height / 2 - 72);
-
         graphics.drawCenteredString(this.font, this.title, this.width / 2, 16, 0xFFFFFF);
-        graphics.drawString(this.font, Component.translatable("tagvyn.gui.titles.id"), x, y - 10, 0xA0A0A0);
-        graphics.drawString(this.font, Component.translatable("tagvyn.gui.titles.text"), x, y + 18, 0xA0A0A0);
-        graphics.drawString(this.font, Component.translatable("tagvyn.gui.titles.color"), x, y + 46, 0xA0A0A0);
+        graphics.drawString(this.font, Component.translatable("tagvyn.gui.titles.id"), layout.formX(), layout.formY() - 10, 0xA0A0A0);
+        graphics.drawString(this.font, Component.translatable("tagvyn.gui.titles.text"), layout.formX(), layout.formY() + 18, 0xA0A0A0);
+        graphics.drawString(this.font, Component.translatable("tagvyn.gui.titles.color"), layout.formX(), layout.formY() + 46, 0xA0A0A0);
 
         Component drop = this.selectedPng == null
                 ? Component.translatable("tagvyn.gui.titles.drop_png")
                 : Component.translatable("tagvyn.gui.titles.selected_png", this.selectedFile, this.selectedPng.length / 1024);
-        graphics.drawCenteredString(this.font, drop, this.width / 2, y + 144, this.selectedPng == null ? 0xB0B0B0 : 0x80FF80);
+        String dropText = fitToWidth(drop.getString(), layout.formWidth());
+        graphics.drawCenteredString(
+                this.font,
+                dropText,
+                layout.formX() + layout.formWidth() / 2,
+                layout.formY() + 144,
+                this.selectedPng == null ? 0xB0B0B0 : 0x80FF80
+        );
         if (!this.localError.isBlank()) {
-            graphics.drawCenteredString(this.font, Component.translatable(this.localError), this.width / 2, y + 157, 0xFF7070);
+            String error = fitToWidth(Component.translatable(this.localError).getString(), layout.formWidth());
+            graphics.drawCenteredString(
+                    this.font,
+                    error,
+                    layout.formX() + layout.formWidth() / 2,
+                    layout.formY() + 157,
+                    0xFF7070
+            );
         }
 
-        int listY = y + 176;
+        renderTitleList(graphics, layout);
+    }
+
+    private void renderTitleList(GuiGraphics graphics, Layout layout) {
         graphics.drawString(
                 this.font,
                 Component.translatable("tagvyn.gui.titles.existing", this.payload.titles().size()),
-                12,
-                listY,
+                layout.listX(),
+                layout.listY(),
                 0xD0D0D0
         );
-        int shown = Math.min(6, this.payload.titles().size());
+
+        int rowY = layout.listY() + 14;
+        int availableRows = Math.max(0, (layout.listBottom() - rowY) / 12);
+        int shown = Math.min(availableRows, this.payload.titles().size());
+        int textWidth = Math.max(24, layout.listWidth());
+
         for (int i = 0; i < shown; i++) {
             OpenTitleManagerPayload.TitleSummary summary = this.payload.titles().get(i);
             String type = summary.image() ? "IMG" : "TXT";
             String line = "[" + type + "] " + summary.id()
                     + (summary.text().isBlank() ? "" : " - " + summary.text());
-            graphics.drawString(this.font, line, 12, listY + 13 + i * 11, summary.color() | 0xFF000000);
+            graphics.drawString(
+                    this.font,
+                    fitToWidth(line, textWidth),
+                    layout.listX(),
+                    rowY + i * 12,
+                    summary.color() | 0xFF000000
+            );
         }
-        if (this.payload.titles().size() > shown) {
-            graphics.drawString(this.font, "... +" + (this.payload.titles().size() - shown), 12, listY + 13 + shown * 11, 0x909090);
+
+        int remaining = this.payload.titles().size() - shown;
+        if (remaining > 0 && availableRows > 0) {
+            int moreY = rowY + Math.max(0, shown - 1) * 12;
+            graphics.drawString(
+                    this.font,
+                    fitToWidth("… +" + remaining, textWidth),
+                    layout.listX(),
+                    moreY,
+                    0x909090
+            );
         }
     }
+
+    private String fitToWidth(String text, int maxWidth) {
+        if (text == null || text.isEmpty() || this.font.width(text) <= maxWidth) return text == null ? "" : text;
+        String ellipsis = "…";
+        if (maxWidth <= this.font.width(ellipsis)) return ellipsis;
+
+        int end = text.length();
+        while (end > 0) {
+            int previous = text.offsetByCodePoints(end, -1);
+            String candidate = text.substring(0, previous) + ellipsis;
+            if (this.font.width(candidate) <= maxWidth) return candidate;
+            end = previous;
+        }
+        return ellipsis;
+    }
+
+    private Layout layout() {
+        boolean sideBySide = this.width >= 560;
+        int formWidth;
+        int formX;
+        int formY = Math.max(48, Math.min(this.height / 2 - 72, this.height - 180));
+        formY = Math.max(42, formY);
+
+        if (sideBySide) {
+            int usableWidth = Math.max(1, this.width - 36 - COLUMN_GAP);
+            formWidth = Math.min(FORM_MAX_WIDTH, usableWidth / 2);
+            int listWidth = Math.min(LIST_MAX_WIDTH, usableWidth - formWidth);
+            int totalWidth = formWidth + COLUMN_GAP + listWidth;
+            formX = Math.max(12, (this.width - totalWidth) / 2);
+            int listX = formX + formWidth + COLUMN_GAP;
+            int listY = Math.max(42, formY - 10);
+            int listBottom = Math.max(listY + 26, Math.min(this.height - 16, formY + 162));
+            return new Layout(formX, formY, formWidth, listX, listY, listWidth, listBottom, true);
+        }
+
+        formWidth = Math.max(80, Math.min(FORM_MAX_WIDTH, this.width - 40));
+        formX = (this.width - formWidth) / 2;
+        int listX = Math.max(12, formX);
+        int listY = formY + 176;
+        int listWidth = Math.max(24, Math.min(formWidth, this.width - listX - 12));
+        int listBottom = Math.max(listY + 10, this.height - 10);
+        return new Layout(formX, formY, formWidth, listX, listY, listWidth, listBottom, false);
+    }
+
+    private record Layout(
+            int formX,
+            int formY,
+            int formWidth,
+            int listX,
+            int listY,
+            int listWidth,
+            int listBottom,
+            boolean sideBySide
+    ) {}
 
     @Override
     public boolean isPauseScreen() {
