@@ -21,12 +21,35 @@
   "tagvyn.message.operator_count_reset": "%s의 닉네임 변경 횟수를 초기화했습니다.",
   "tagvyn.message.operator_title_set": "%s의 칭호를 %s(으)로 설정했습니다.",
   "tagvyn.message.operator_title_cleared": "%s의 칭호를 해제했습니다.",
-  "tagvyn.message.reload": "Tagvyn 칭호 설정을 다시 불러왔습니다.",
+  "tagvyn.message.player_missing": "접속 중인 플레이어를 찾을 수 없습니다: %s",
+  "tagvyn.message.reload": "Tagvyn 설정과 칭호 이미지를 다시 불러왔습니다.",
   "tagvyn.message.no_player": "플레이어만 사용할 수 있는 명령어입니다.",
+
+  "tagvyn.gui.admin.title": "Tagvyn 관리자",
+  "tagvyn.gui.admin.description": "닉네임과 칭호를 GUI에서 관리합니다.",
+  "tagvyn.gui.admin.players": "플레이어 관리",
+  "tagvyn.gui.admin.titles": "칭호 관리",
+  "tagvyn.gui.admin.my_nickname": "내 닉네임 설정",
+  "tagvyn.gui.admin.reload": "설정 재로드 / 이미지 동기화",
+
+  "tagvyn.gui.players.title": "Tagvyn 플레이어 관리",
+  "tagvyn.gui.players.description": "플레이어를 선택하고 닉네임과 칭호를 관리하세요.",
+  "tagvyn.gui.players.none": "접속 중인 플레이어 없음",
+  "tagvyn.gui.players.nickname": "닉네임",
+  "tagvyn.gui.players.save_nickname": "닉네임 저장",
+  "tagvyn.gui.players.clear_nickname": "닉네임 초기화",
+  "tagvyn.gui.players.reset_count": "닉네임 변경 횟수 초기화",
+  "tagvyn.gui.players.title_label": "칭호",
+  "tagvyn.gui.players.no_title": "선택된 칭호 없음",
+  "tagvyn.gui.players.apply_title": "칭호 적용",
+  "tagvyn.gui.players.clear_title": "칭호 해제",
+  "tagvyn.gui.players.stats": "변경 사용: %s / 남은 횟수: %s",
+
   "tagvyn.gui.nickname.title": "닉네임 설정",
   "tagvyn.gui.nickname.description": "사용할 닉네임을 입력하세요.",
   "tagvyn.gui.nickname.input": "닉네임",
   "tagvyn.gui.nickname.remaining": "남은 변경 횟수: %s",
+
   "tagvyn.gui.titles.title": "Tagvyn 칭호 관리",
   "tagvyn.gui.titles.id": "칭호 ID",
   "tagvyn.gui.titles.text": "표시 텍스트 (이미지는 선택사항)",
@@ -40,6 +63,9 @@
   "tagvyn.gui.titles.error_png_only": "PNG 파일만 올릴 수 있습니다.",
   "tagvyn.gui.titles.error_png_invalid": "PNG가 아니거나 크기 제한을 초과했습니다.",
   "tagvyn.gui.titles.error_read": "이미지 파일을 읽지 못했습니다.",
+
   "tagvyn.gui.save": "저장",
-  "tagvyn.gui.cancel": "취소"
+  "tagvyn.gui.cancel": "취소",
+  "tagvyn.gui.back": "뒤로",
+  "tagvyn.gui.close": "닫기"
 }

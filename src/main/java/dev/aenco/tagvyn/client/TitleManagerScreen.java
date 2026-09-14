@@ -1,5 +1,6 @@
 package dev.aenco.tagvyn.client;
 
+import dev.aenco.tagvyn.network.AdminDashboardActionPayload;
 import dev.aenco.tagvyn.network.CreateTextTitlePayload;
 import dev.aenco.tagvyn.network.DeleteTitlePayload;
 import dev.aenco.tagvyn.network.OpenTitleManagerPayload;
@@ -66,8 +67,8 @@ public final class TitleManagerScreen extends Screen {
         ).bounds(x, y + 112, width / 2 - 2, 20).build());
 
         this.addRenderableWidget(Button.builder(
-                Component.translatable("tagvyn.gui.cancel"),
-                button -> onClose()
+                Component.translatable("tagvyn.gui.back"),
+                button -> PacketDistributor.sendToServer(new AdminDashboardActionPayload("dashboard"))
         ).bounds(x + width / 2 + 2, y + 112, width / 2 - 2, 20).build());
 
         this.idBox.setResponder(value -> updateButtons());
