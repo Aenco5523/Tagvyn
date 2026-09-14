@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.6.2
+
+- Expanded localization from Korean/English to nine bundled client languages: English, Korean, Japanese, Simplified Chinese, Traditional Chinese, Spanish, French, German, and Brazilian Portuguese.
+- Localized first-join prompts, admin/player/title GUIs, feedback messages, and title-item names/lore.
+- Made the main README loader/version agnostic so it does not become stale when new Minecraft versions or loaders are added.
+- Installation/compatibility guidance now points users to the loader and Minecraft version encoded in each release JAR filename.
+
 ## 0.6.1
 
 - Simplified the README into a player/server-admin focused project page.
