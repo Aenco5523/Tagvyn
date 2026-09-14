@@ -9,7 +9,7 @@ version = mod_version
 group = mod_group_id
 
 base {
-    archivesName = "${mod_name}-${mod_loader}"
+    archivesName = "${mod_name}-${mod_loader}-${minecraft_version}"
 }
 
 java.toolchain.languageVersion = JavaLanguageVersion.of(21)
@@ -34,7 +34,6 @@ neoForge {
         server {
             server()
             programArgument '--nogui'
-            systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
         }
         configureEach {
             logLevel = org.slf4j.event.Level.INFO
