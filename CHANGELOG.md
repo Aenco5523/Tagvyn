@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.4.3
+
+- Reworked the title manager into a responsive layout so registered titles no longer fall off the bottom of short game windows.
+- Uses a two-column layout on wider windows: title form on the left and registered titles on the right.
+- Falls back to a compact single-column layout on narrow windows.
+- Long title rows and PNG helper text are clipped with an ellipsis instead of drawing outside the available area.
+- The visible title row count now adapts to the current screen height.
+
 ## 0.4.2
 
 - Fixed GUI layer ordering so labels and helper text render above EditBox/Button backgrounds.
