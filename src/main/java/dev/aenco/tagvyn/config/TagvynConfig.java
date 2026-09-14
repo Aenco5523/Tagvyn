@@ -20,14 +20,13 @@ public final class TagvynConfig {
         public final ModConfigSpec.IntValue nicknameMinLength;
         public final ModConfigSpec.IntValue nicknameMaxLength;
         public final ModConfigSpec.BooleanValue allowSpaces;
-        public final ModConfigSpec.IntValue adminPermissionLevel;
         public final ModConfigSpec.BooleanValue showTitleInDisplayName;
         public final ModConfigSpec.BooleanValue showTitleInTab;
 
         Values(ModConfigSpec.Builder builder) {
             builder.push("nickname");
             nicknameChangeLimit = builder
-                    .comment("How many nickname changes normal players may make. -1 = unlimited.")
+                    .comment("How many nickname changes normal players may make. -1 = unlimited. Server operators bypass this limit.")
                     .defineInRange("changeLimit", 3, -1, 100000);
             nicknameMinLength = builder
                     .comment("Minimum nickname length.")
@@ -38,12 +37,6 @@ public final class TagvynConfig {
             allowSpaces = builder
                     .comment("Allow spaces inside nicknames.")
                     .define("allowSpaces", true);
-            builder.pop();
-
-            builder.push("permissions");
-            adminPermissionLevel = builder
-                    .comment("Vanilla command permission level treated as Tagvyn admin. Admins bypass nickname change limits.")
-                    .defineInRange("adminPermissionLevel", 2, 0, 4);
             builder.pop();
 
             builder.push("display");

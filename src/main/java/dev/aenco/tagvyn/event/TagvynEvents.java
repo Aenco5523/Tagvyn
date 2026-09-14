@@ -3,7 +3,9 @@ package dev.aenco.tagvyn.event;
 import dev.aenco.tagvyn.Tagvyn;
 import dev.aenco.tagvyn.command.TagvynCommands;
 import dev.aenco.tagvyn.config.TagvynConfig;
+import dev.aenco.tagvyn.data.TagvynAttachments;
 import dev.aenco.tagvyn.display.TagvynDisplay;
+import dev.aenco.tagvyn.service.TagvynMessages;
 import dev.aenco.tagvyn.service.TagvynService;
 import dev.aenco.tagvyn.title.TitleRegistry;
 import net.minecraft.network.chat.Component;
@@ -50,8 +52,10 @@ public final class TagvynEvents {
 
     @SubscribeEvent
     public static void onPlayerLogin(PlayerEvent.PlayerLoggedInEvent event) {
-        if (event.getEntity() instanceof ServerPlayer player) {
-            TagvynService.refreshTitleSnapshot(player);
+        if (!(event.getEntity() instanceof ServerPlayer player)) return;
+        TagvynService.refreshTitleSnapshot(player);
+        if (!player.getData(TagvynAttachments.IDENTITY).hasNickname()) {
+            TagvynMessages.sendNicknamePrompt(player);
         }
     }
 

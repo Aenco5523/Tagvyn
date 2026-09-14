@@ -77,6 +77,10 @@ public final class TagvynService {
 
     public static void reloadTitles(MinecraftServer server) {
         TitleRegistry.load();
+        refreshAllTitleSnapshots(server);
+    }
+
+    public static void refreshAllTitleSnapshots(MinecraftServer server) {
         for (ServerPlayer player : server.getPlayerList().getPlayers()) {
             refreshTitleSnapshot(player);
         }

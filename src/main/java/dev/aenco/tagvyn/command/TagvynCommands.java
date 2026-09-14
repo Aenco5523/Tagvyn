@@ -2,12 +2,15 @@ package dev.aenco.tagvyn.command;
 
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.StringArgumentType;
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import dev.aenco.tagvyn.api.TagvynAPI;
+import dev.aenco.tagvyn.api.TagvynTitle;
 import dev.aenco.tagvyn.config.TagvynConfig;
 import dev.aenco.tagvyn.data.IdentityData;
 import dev.aenco.tagvyn.data.TagvynAttachments;
+import dev.aenco.tagvyn.network.TagvynNetwork;
+import dev.aenco.tagvyn.service.TagvynMessages;
 import dev.aenco.tagvyn.service.TagvynService;
-import dev.aenco.tagvyn.title.TitleDefinition;
-import dev.aenco.tagvyn.title.TitleRegistry;
 import java.util.stream.Collectors;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
@@ -21,6 +24,8 @@ public final class TagvynCommands {
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
         dispatcher.register(Commands.literal("tagvyn")
                 .then(Commands.literal("nick")
+                        .then(Commands.literal("gui")
+                                .executes(context -> openNicknameGui(context.getSource())))
                         .then(Commands.literal("set")
                                 .then(Commands.argument("nickname", StringArgumentType.greedyString())
                                         .executes(context -> setOwnNickname(
@@ -30,57 +35,104 @@ public final class TagvynCommands {
                         .then(Commands.literal("clear")
                                 .executes(context -> clearOwnNickname(context.getSource())))
                         .then(Commands.literal("info")
-                                .executes(context -> showInfo(context.getSource()))))
+                                .executes(context -> showInfo(context.getSource())))
+                        .then(Commands.literal("setfor")
+                                .requires(TagvynCommands::isOperator)
+                                .then(Commands.argument("player", EntityArgument.player())
+                                        .then(Commands.argument("nickname", StringArgumentType.greedyString())
+                                                .executes(context -> operatorSetNickname(
+                                                        context.getSource(),
+                                                        EntityArgument.getPlayer(context, "player"),
+                                                        StringArgumentType.getString(context, "nickname")
+                                                )))))
+                        .then(Commands.literal("clearfor")
+                                .requires(TagvynCommands::isOperator)
+                                .then(Commands.argument("player", EntityArgument.player())
+                                        .executes(context -> operatorClearNickname(
+                                                context.getSource(),
+                                                EntityArgument.getPlayer(context, "player")
+                                        ))))
+                        .then(Commands.literal("resetcount")
+                                .requires(TagvynCommands::isOperator)
+                                .then(Commands.argument("player", EntityArgument.player())
+                                        .executes(context -> resetCount(
+                                                context.getSource(),
+                                                EntityArgument.getPlayer(context, "player")
+                                        )))))
                 .then(Commands.literal("title")
                         .then(Commands.literal("list")
-                                .executes(context -> listTitles(context.getSource()))))
-                .then(Commands.literal("admin")
-                        .requires(TagvynCommands::isAdmin)
-                        .then(Commands.literal("nick")
-                                .then(Commands.literal("set")
-                                        .then(Commands.argument("player", EntityArgument.player())
-                                                .then(Commands.argument("nickname", StringArgumentType.greedyString())
-                                                        .executes(context -> adminSetNickname(
-                                                                context.getSource(),
-                                                                EntityArgument.getPlayer(context, "player"),
-                                                                StringArgumentType.getString(context, "nickname")
-                                                        )))))
-                                .then(Commands.literal("clear")
-                                        .then(Commands.argument("player", EntityArgument.player())
-                                                .executes(context -> adminClearNickname(
+                                .executes(context -> listTitles(context.getSource())))
+                        .then(Commands.literal("set")
+                                .requires(TagvynCommands::isOperator)
+                                .then(Commands.argument("player", EntityArgument.player())
+                                        .then(Commands.argument("title", StringArgumentType.word())
+                                                .executes(context -> operatorSetTitle(
                                                         context.getSource(),
-                                                        EntityArgument.getPlayer(context, "player")
-                                                ))))
-                                .then(Commands.literal("reset-count")
-                                        .then(Commands.argument("player", EntityArgument.player())
-                                                .executes(context -> resetCount(
-                                                        context.getSource(),
-                                                        EntityArgument.getPlayer(context, "player")
+                                                        EntityArgument.getPlayer(context, "player"),
+                                                        StringArgumentType.getString(context, "title")
                                                 )))))
-                        .then(Commands.literal("title")
-                                .then(Commands.literal("set")
-                                        .then(Commands.argument("player", EntityArgument.player())
-                                                .then(Commands.argument("title", StringArgumentType.word())
-                                                        .executes(context -> adminSetTitle(
-                                                                context.getSource(),
-                                                                EntityArgument.getPlayer(context, "player"),
-                                                                StringArgumentType.getString(context, "title")
-                                                        )))))
-                                .then(Commands.literal("clear")
-                                        .then(Commands.argument("player", EntityArgument.player())
-                                                .executes(context -> adminClearTitle(
-                                                        context.getSource(),
-                                                        EntityArgument.getPlayer(context, "player")
-                                                )))))
-                        .then(Commands.literal("reload")
-                                .executes(context -> reload(context.getSource()))))
+                        .then(Commands.literal("clear")
+                                .requires(TagvynCommands::isOperator)
+                                .then(Commands.argument("player", EntityArgument.player())
+                                        .executes(context -> operatorClearTitle(
+                                                context.getSource(),
+                                                EntityArgument.getPlayer(context, "player")
+                                        ))))
+                        .then(Commands.literal("create")
+                                .requires(TagvynCommands::isOperator)
+                                .then(Commands.literal("text")
+                                        .then(Commands.argument("id", StringArgumentType.word())
+                                                .then(Commands.argument("color", StringArgumentType.word())
+                                                        .then(Commands.argument("text", StringArgumentType.greedyString())
+                                                                .executes(context -> createTextTitle(
+                                                                        context.getSource(),
+                                                                        StringArgumentType.getString(context, "id"),
+                                                                        StringArgumentType.getString(context, "color"),
+                                                                        StringArgumentType.getString(context, "text")
+                                                                ))))))
+                                .then(Commands.literal("image")
+                                        .then(Commands.argument("id", StringArgumentType.word())
+                                                .then(Commands.argument("color", StringArgumentType.word())
+                                                        .then(Commands.argument("font", StringArgumentType.string())
+                                                                .then(Commands.argument("glyph", StringArgumentType.string())
+                                                                        .executes(context -> createImageTitle(
+                                                                                context.getSource(),
+                                                                                StringArgumentType.getString(context, "id"),
+                                                                                StringArgumentType.getString(context, "color"),
+                                                                                StringArgumentType.getString(context, "font"),
+                                                                                StringArgumentType.getString(context, "glyph"),
+                                                                                ""
+                                                                        ))
+                                                                        .then(Commands.argument("text", StringArgumentType.greedyString())
+                                                                                .executes(context -> createImageTitle(
+                                                                                        context.getSource(),
+                                                                                        StringArgumentType.getString(context, "id"),
+                                                                                        StringArgumentType.getString(context, "color"),
+                                                                                        StringArgumentType.getString(context, "font"),
+                                                                                        StringArgumentType.getString(context, "glyph"),
+                                                                                        StringArgumentType.getString(context, "text")
+                                                                                )))))))))
+                        .then(Commands.literal("delete")
+                                .requires(TagvynCommands::isOperator)
+                                .then(Commands.argument("id", StringArgumentType.word())
+                                        .executes(context -> deleteTitle(
+                                                context.getSource(),
+                                                StringArgumentType.getString(context, "id")
+                                        )))))
+                .then(Commands.literal("reload")
+                        .requires(TagvynCommands::isOperator)
+                        .executes(context -> reload(context.getSource())))
         );
     }
 
-    private static int setOwnNickname(CommandSourceStack source, String nickname) throws com.mojang.brigadier.exceptions.CommandSyntaxException {
+    private static int openNicknameGui(CommandSourceStack source) throws CommandSyntaxException {
+        TagvynNetwork.openNicknameScreen(source.getPlayerOrException());
+        return 1;
+    }
+
+    private static int setOwnNickname(CommandSourceStack source, String nickname) throws CommandSyntaxException {
         ServerPlayer player = source.getPlayerOrException();
-        boolean bypass = isAdmin(source);
-        TagvynService.NicknameResult result = TagvynService.setNickname(player, nickname, bypass);
+        TagvynService.NicknameResult result = TagvynService.setNickname(player, nickname, isOperator(source));
         if (!result.success()) {
             sendNicknameFailure(source, result);
             return 0;
@@ -89,22 +141,23 @@ public final class TagvynCommands {
         return 1;
     }
 
-    private static int clearOwnNickname(CommandSourceStack source) throws com.mojang.brigadier.exceptions.CommandSyntaxException {
+    private static int clearOwnNickname(CommandSourceStack source) throws CommandSyntaxException {
         ServerPlayer player = source.getPlayerOrException();
-        TagvynService.NicknameResult result = TagvynService.clearNickname(player, isAdmin(source));
+        TagvynService.NicknameResult result = TagvynService.clearNickname(player, isOperator(source));
         if (!result.success()) {
             sendNicknameFailure(source, result);
             return 0;
         }
         source.sendSuccess(() -> Component.translatable("tagvyn.message.nickname_cleared"), false);
+        TagvynMessages.sendNicknamePrompt(player);
         return 1;
     }
 
-    private static int showInfo(CommandSourceStack source) throws com.mojang.brigadier.exceptions.CommandSyntaxException {
+    private static int showInfo(CommandSourceStack source) throws CommandSyntaxException {
         ServerPlayer player = source.getPlayerOrException();
         IdentityData data = player.getData(TagvynAttachments.IDENTITY);
         int limit = TagvynConfig.VALUES.nicknameChangeLimit.get();
-        String remaining = limit < 0 ? "∞" : Integer.toString(TagvynService.remainingChanges(data));
+        String remaining = isOperator(source) || limit < 0 ? "∞" : Integer.toString(TagvynService.remainingChanges(data));
         String nickname = data.hasNickname() ? data.nickname() : "-";
         String title = data.hasTitle() ? data.titleId() : "-";
         source.sendSuccess(() -> Component.literal(
@@ -114,45 +167,112 @@ public final class TagvynCommands {
     }
 
     private static int listTitles(CommandSourceStack source) {
-        String titles = TitleRegistry.all().stream().map(TitleDefinition::id).collect(Collectors.joining(", "));
+        String titles = TagvynAPI.get().getTitles().stream().map(TagvynTitle::id).collect(Collectors.joining(", "));
         source.sendSuccess(() -> Component.literal("Tagvyn titles: " + (titles.isBlank() ? "(none)" : titles)), false);
         return 1;
     }
 
-    private static int adminSetNickname(CommandSourceStack source, ServerPlayer target, String nickname) {
+    private static int operatorSetNickname(CommandSourceStack source, ServerPlayer target, String nickname) {
         TagvynService.NicknameResult result = TagvynService.setNickname(target, nickname, true);
         if (!result.success()) {
             source.sendFailure(Component.translatable("tagvyn.message.nickname_invalid"));
             return 0;
         }
-        source.sendSuccess(() -> Component.literal("Set " + target.getGameProfile().getName() + " nickname to " + result.nickname()), true);
+        source.sendSuccess(() -> Component.translatable(
+                "tagvyn.message.operator_nickname_set",
+                target.getGameProfile().getName(),
+                result.nickname()
+        ), true);
         return 1;
     }
 
-    private static int adminClearNickname(CommandSourceStack source, ServerPlayer target) {
+    private static int operatorClearNickname(CommandSourceStack source, ServerPlayer target) {
         TagvynService.clearNickname(target, true);
-        source.sendSuccess(() -> Component.literal("Cleared " + target.getGameProfile().getName() + " nickname."), true);
+        source.sendSuccess(() -> Component.translatable(
+                "tagvyn.message.operator_nickname_cleared",
+                target.getGameProfile().getName()
+        ), true);
+        TagvynMessages.sendNicknamePrompt(target);
         return 1;
     }
 
     private static int resetCount(CommandSourceStack source, ServerPlayer target) {
         TagvynService.resetNicknameChanges(target);
-        source.sendSuccess(() -> Component.literal("Reset nickname change count for " + target.getGameProfile().getName() + "."), true);
+        source.sendSuccess(() -> Component.translatable(
+                "tagvyn.message.operator_count_reset",
+                target.getGameProfile().getName()
+        ), true);
         return 1;
     }
 
-    private static int adminSetTitle(CommandSourceStack source, ServerPlayer target, String titleId) {
+    private static int operatorSetTitle(CommandSourceStack source, ServerPlayer target, String titleId) {
         if (!TagvynService.setTitle(target, titleId)) {
             source.sendFailure(Component.translatable("tagvyn.message.title_missing", titleId));
             return 0;
         }
-        source.sendSuccess(() -> Component.literal("Set " + target.getGameProfile().getName() + " title to " + titleId + "."), true);
+        source.sendSuccess(() -> Component.translatable(
+                "tagvyn.message.operator_title_set",
+                target.getGameProfile().getName(),
+                titleId
+        ), true);
         return 1;
     }
 
-    private static int adminClearTitle(CommandSourceStack source, ServerPlayer target) {
+    private static int operatorClearTitle(CommandSourceStack source, ServerPlayer target) {
         TagvynService.clearTitle(target);
-        source.sendSuccess(() -> Component.literal("Cleared " + target.getGameProfile().getName() + " title."), true);
+        source.sendSuccess(() -> Component.translatable(
+                "tagvyn.message.operator_title_cleared",
+                target.getGameProfile().getName()
+        ), true);
+        return 1;
+    }
+
+    private static int createTextTitle(CommandSourceStack source, String id, String colorText, String text) {
+        Integer color = parseColor(colorText);
+        if (color == null) {
+            source.sendFailure(Component.translatable("tagvyn.message.title_color_invalid", colorText));
+            return 0;
+        }
+        return registerTitle(source, new TagvynTitle(id, text, color, "", ""));
+    }
+
+    private static int createImageTitle(
+            CommandSourceStack source,
+            String id,
+            String colorText,
+            String font,
+            String glyph,
+            String text
+    ) {
+        Integer color = parseColor(colorText);
+        if (color == null) {
+            source.sendFailure(Component.translatable("tagvyn.message.title_color_invalid", colorText));
+            return 0;
+        }
+        return registerTitle(source, new TagvynTitle(id, text, color, font, glyph));
+    }
+
+    private static int registerTitle(CommandSourceStack source, TagvynTitle title) {
+        if (TagvynAPI.get().getTitle(title.id()).isPresent()) {
+            source.sendFailure(Component.translatable("tagvyn.message.title_exists", title.id()));
+            return 0;
+        }
+        if (!TagvynAPI.get().registerTitle(title, false)) {
+            source.sendFailure(Component.translatable("tagvyn.message.title_invalid", title.id()));
+            return 0;
+        }
+        TagvynAPI.get().refreshTitles(source.getServer());
+        source.sendSuccess(() -> Component.translatable("tagvyn.message.title_created", title.id()), true);
+        return 1;
+    }
+
+    private static int deleteTitle(CommandSourceStack source, String id) {
+        if (!TagvynAPI.get().unregisterTitle(id)) {
+            source.sendFailure(Component.translatable("tagvyn.message.title_missing", id));
+            return 0;
+        }
+        TagvynAPI.get().refreshTitles(source.getServer());
+        source.sendSuccess(() -> Component.translatable("tagvyn.message.title_deleted", id), true);
         return 1;
     }
 
@@ -160,6 +280,13 @@ public final class TagvynCommands {
         TagvynService.reloadTitles(source.getServer());
         source.sendSuccess(() -> Component.translatable("tagvyn.message.reload"), true);
         return 1;
+    }
+
+    private static Integer parseColor(String raw) {
+        String value = raw == null ? "" : raw.trim();
+        if (value.startsWith("#")) value = value.substring(1);
+        if (!value.matches("[0-9a-fA-F]{6}")) return null;
+        return Integer.parseInt(value, 16);
     }
 
     private static void sendNicknameFailure(CommandSourceStack source, TagvynService.NicknameResult result) {
@@ -175,7 +302,7 @@ public final class TagvynCommands {
         }
     }
 
-    private static boolean isAdmin(CommandSourceStack source) {
-        return source.hasPermission(TagvynConfig.VALUES.adminPermissionLevel.get());
+    private static boolean isOperator(CommandSourceStack source) {
+        return source.hasPermission(2);
     }
 }
