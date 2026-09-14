@@ -21,12 +21,35 @@
   "tagvyn.message.operator_count_reset": "Reset nickname change count for %s.",
   "tagvyn.message.operator_title_set": "Set %s's title to %s.",
   "tagvyn.message.operator_title_cleared": "Cleared %s's title.",
-  "tagvyn.message.reload": "Tagvyn titles reloaded.",
+  "tagvyn.message.player_missing": "Could not find an online player: %s",
+  "tagvyn.message.reload": "Reloaded Tagvyn settings and title images.",
   "tagvyn.message.no_player": "This command can only be used by a player.",
+
+  "tagvyn.gui.admin.title": "Tagvyn Admin",
+  "tagvyn.gui.admin.description": "Manage nicknames and titles through the GUI.",
+  "tagvyn.gui.admin.players": "Manage Players",
+  "tagvyn.gui.admin.titles": "Manage Titles",
+  "tagvyn.gui.admin.my_nickname": "Set My Nickname",
+  "tagvyn.gui.admin.reload": "Reload / Sync Images",
+
+  "tagvyn.gui.players.title": "Tagvyn Player Manager",
+  "tagvyn.gui.players.description": "Select a player and manage their nickname and title.",
+  "tagvyn.gui.players.none": "No players online",
+  "tagvyn.gui.players.nickname": "Nickname",
+  "tagvyn.gui.players.save_nickname": "Save Nickname",
+  "tagvyn.gui.players.clear_nickname": "Clear Nickname",
+  "tagvyn.gui.players.reset_count": "Reset Nickname Change Count",
+  "tagvyn.gui.players.title_label": "Title",
+  "tagvyn.gui.players.no_title": "No title selected",
+  "tagvyn.gui.players.apply_title": "Apply Title",
+  "tagvyn.gui.players.clear_title": "Clear Title",
+  "tagvyn.gui.players.stats": "Used changes: %s / Remaining: %s",
+
   "tagvyn.gui.nickname.title": "Set Nickname",
   "tagvyn.gui.nickname.description": "Enter the nickname you want to use.",
   "tagvyn.gui.nickname.input": "Nickname",
   "tagvyn.gui.nickname.remaining": "Changes remaining: %s",
+
   "tagvyn.gui.titles.title": "Tagvyn Title Manager",
   "tagvyn.gui.titles.id": "Title ID",
   "tagvyn.gui.titles.text": "Display text (optional for images)",
@@ -40,6 +63,9 @@
   "tagvyn.gui.titles.error_png_only": "Only PNG files can be uploaded.",
   "tagvyn.gui.titles.error_png_invalid": "The PNG is invalid or exceeds the size limit.",
   "tagvyn.gui.titles.error_read": "Could not read the image file.",
+
   "tagvyn.gui.save": "Save",
-  "tagvyn.gui.cancel": "Cancel"
+  "tagvyn.gui.cancel": "Cancel",
+  "tagvyn.gui.back": "Back",
+  "tagvyn.gui.close": "Close"
 }
