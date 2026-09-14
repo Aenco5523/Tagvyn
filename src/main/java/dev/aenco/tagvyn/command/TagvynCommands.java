@@ -22,88 +22,96 @@ public final class TagvynCommands {
     private TagvynCommands() {}
 
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
-        dispatcher.register(Commands.literal("tagvyn")
-                .then(Commands.literal("nick")
-                        .then(Commands.literal("gui")
-                                .executes(context -> openNicknameGui(context.getSource())))
-                        .then(Commands.literal("set")
-                                .then(Commands.argument("nickname", StringArgumentType.greedyString())
-                                        .executes(context -> setOwnNickname(
+        var root = Commands.literal("tagvyn");
+
+        var nick = Commands.literal("nick");
+        nick.then(Commands.literal("gui")
+                .executes(context -> openNicknameGui(context.getSource())));
+        nick.then(Commands.literal("set")
+                .then(Commands.argument("nickname", StringArgumentType.greedyString())
+                        .executes(context -> setOwnNickname(
+                                context.getSource(),
+                                StringArgumentType.getString(context, "nickname")
+                        ))));
+        nick.then(Commands.literal("clear")
+                .executes(context -> clearOwnNickname(context.getSource())));
+        nick.then(Commands.literal("info")
+                .executes(context -> showInfo(context.getSource())));
+        nick.then(Commands.literal("setfor")
+                .requires(TagvynCommands::isOperator)
+                .then(Commands.argument("player", EntityArgument.player())
+                        .then(Commands.argument("nickname", StringArgumentType.greedyString())
+                                .executes(context -> operatorSetNickname(
+                                        context.getSource(),
+                                        EntityArgument.getPlayer(context, "player"),
+                                        StringArgumentType.getString(context, "nickname")
+                                )))));
+        nick.then(Commands.literal("clearfor")
+                .requires(TagvynCommands::isOperator)
+                .then(Commands.argument("player", EntityArgument.player())
+                        .executes(context -> operatorClearNickname(
+                                context.getSource(),
+                                EntityArgument.getPlayer(context, "player")
+                        ))));
+        nick.then(Commands.literal("resetcount")
+                .requires(TagvynCommands::isOperator)
+                .then(Commands.argument("player", EntityArgument.player())
+                        .executes(context -> resetCount(
+                                context.getSource(),
+                                EntityArgument.getPlayer(context, "player")
+                        ))));
+        root.then(nick);
+
+        var title = Commands.literal("title");
+        title.then(Commands.literal("list")
+                .executes(context -> listTitles(context.getSource())));
+        title.then(Commands.literal("set")
+                .requires(TagvynCommands::isOperator)
+                .then(Commands.argument("player", EntityArgument.player())
+                        .then(Commands.argument("title", StringArgumentType.word())
+                                .executes(context -> operatorSetTitle(
+                                        context.getSource(),
+                                        EntityArgument.getPlayer(context, "player"),
+                                        StringArgumentType.getString(context, "title")
+                                )))));
+        title.then(Commands.literal("clear")
+                .requires(TagvynCommands::isOperator)
+                .then(Commands.argument("player", EntityArgument.player())
+                        .executes(context -> operatorClearTitle(
+                                context.getSource(),
+                                EntityArgument.getPlayer(context, "player")
+                        ))));
+
+        var create = Commands.literal("create").requires(TagvynCommands::isOperator);
+        create.then(Commands.literal("text")
+                .then(Commands.argument("id", StringArgumentType.word())
+                        .then(Commands.argument("color", StringArgumentType.word())
+                                .then(Commands.argument("text", StringArgumentType.greedyString())
+                                        .executes(context -> createTextTitle(
                                                 context.getSource(),
-                                                StringArgumentType.getString(context, "nickname")
-                                        ))))
-                        .then(Commands.literal("clear")
-                                .executes(context -> clearOwnNickname(context.getSource())))
-                        .then(Commands.literal("info")
-                                .executes(context -> showInfo(context.getSource())))
-                        .then(Commands.literal("setfor")
-                                .requires(TagvynCommands::isOperator)
-                                .then(Commands.argument("player", EntityArgument.player())
-                                        .then(Commands.argument("nickname", StringArgumentType.greedyString())
-                                                .executes(context -> operatorSetNickname(
-                                                        context.getSource(),
-                                                        EntityArgument.getPlayer(context, "player"),
-                                                        StringArgumentType.getString(context, "nickname")
-                                                )))))
-                        .then(Commands.literal("clearfor")
-                                .requires(TagvynCommands::isOperator)
-                                .then(Commands.argument("player", EntityArgument.player())
-                                        .executes(context -> operatorClearNickname(
-                                                context.getSource(),
-                                                EntityArgument.getPlayer(context, "player")
-                                        ))))
-                        .then(Commands.literal("resetcount")
-                                .requires(TagvynCommands::isOperator)
-                                .then(Commands.argument("player", EntityArgument.player())
-                                        .executes(context -> resetCount(
-                                                context.getSource(),
-                                                EntityArgument.getPlayer(context, "player")
-                                        )))))
-                .then(Commands.literal("title")
-                        .then(Commands.literal("list")
-                                .executes(context -> listTitles(context.getSource())))
-                        .then(Commands.literal("set")
-                                .requires(TagvynCommands::isOperator)
-                                .then(Commands.argument("player", EntityArgument.player())
-                                        .then(Commands.argument("title", StringArgumentType.word())
-                                                .executes(context -> operatorSetTitle(
-                                                        context.getSource(),
-                                                        EntityArgument.getPlayer(context, "player"),
-                                                        StringArgumentType.getString(context, "title")
-                                                )))))
-                        .then(Commands.literal("clear")
-                                .requires(TagvynCommands::isOperator)
-                                .then(Commands.argument("player", EntityArgument.player())
-                                        .executes(context -> operatorClearTitle(
-                                                context.getSource(),
-                                                EntityArgument.getPlayer(context, "player")
-                                        ))))
-                        .then(Commands.literal("create")
-                                .requires(TagvynCommands::isOperator)
-                                .then(Commands.literal("text")
-                                        .then(Commands.argument("id", StringArgumentType.word())
-                                                .then(Commands.argument("color", StringArgumentType.word())
-                                                        .then(Commands.argument("text", StringArgumentType.greedyString())
-                                                                .executes(context -> createTextTitle(
-                                                                        context.getSource(),
-                                                                        StringArgumentType.getString(context, "id"),
-                                                                        StringArgumentType.getString(context, "color"),
-                                                                        StringArgumentType.getString(context, "text")
-                                                                ))))))
-                        .then(Commands.literal("delete")
-                                .requires(TagvynCommands::isOperator)
-                                .then(Commands.argument("id", StringArgumentType.word())
-                                        .executes(context -> deleteTitle(
-                                                context.getSource(),
-                                                StringArgumentType.getString(context, "id")
-                                        )))))
-                .then(Commands.literal("titles")
-                        .requires(TagvynCommands::isOperator)
-                        .executes(context -> openTitleManager(context.getSource())))
-                .then(Commands.literal("reload")
-                        .requires(TagvynCommands::isOperator)
-                        .executes(context -> reload(context.getSource())))
-        );
+                                                StringArgumentType.getString(context, "id"),
+                                                StringArgumentType.getString(context, "color"),
+                                                StringArgumentType.getString(context, "text")
+                                        ))))));
+        title.then(create);
+
+        title.then(Commands.literal("delete")
+                .requires(TagvynCommands::isOperator)
+                .then(Commands.argument("id", StringArgumentType.word())
+                        .executes(context -> deleteTitle(
+                                context.getSource(),
+                                StringArgumentType.getString(context, "id")
+                        ))));
+        root.then(title);
+
+        root.then(Commands.literal("titles")
+                .requires(TagvynCommands::isOperator)
+                .executes(context -> openTitleManager(context.getSource())));
+        root.then(Commands.literal("reload")
+                .requires(TagvynCommands::isOperator)
+                .executes(context -> reload(context.getSource())));
+
+        dispatcher.register(root);
     }
 
     private static int openNicknameGui(CommandSourceStack source) throws CommandSyntaxException {
