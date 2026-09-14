@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.6.1
+
+- Simplified the README into a player/server-admin focused project page.
+- Removed low-level API, configuration, resource-pack and implementation details from the main README in preparation for separate Wiki/developer documentation.
+- Updated build naming to include the Minecraft version: `Tagvyn-<loader>-<minecraft-version>-<mod-version>.jar`.
+- NeoForge 1.21.1 builds now use names such as `Tagvyn-neoforge-1.21.1-0.6.1.jar`.
+
 ## 0.6.0
 
 - Added Name Tag based title items generated from the title manager GUI.
