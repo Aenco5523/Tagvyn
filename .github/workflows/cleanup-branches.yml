@@ -38,7 +38,7 @@ jobs:
                 git push origin --delete "$branch"
                 continue
                 ;;
-              feature/*|ci/*) ;;
+              feature/*|ci/*|docs/*) ;;
               *) continue ;;
             esac
 
@@ -54,4 +54,4 @@ jobs:
             else
               echo "Keeping branch without merged PR: $branch"
             fi
-          done < <(git for-each-ref --format='%(refname:short)' refs/remotes/origin/feature refs/remotes/origin/ci)
+          done < <(git for-each-ref --format='%(refname:short)' refs/remotes/origin/feature refs/remotes/origin/ci refs/remotes/origin/docs)
