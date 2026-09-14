@@ -239,7 +239,9 @@ public final class TitleManagerScreen extends Screen {
 
         int rowY = layout.listY() + 14;
         int availableRows = Math.max(0, (layout.listBottom() - rowY) / 12);
-        int shown = Math.min(availableRows, this.payload.titles().size());
+        boolean needsOverflowRow = this.payload.titles().size() > availableRows && availableRows > 0;
+        int dataRows = needsOverflowRow ? availableRows - 1 : availableRows;
+        int shown = Math.min(Math.max(0, dataRows), this.payload.titles().size());
         int textWidth = Math.max(24, layout.listWidth());
 
         for (int i = 0; i < shown; i++) {
@@ -257,13 +259,12 @@ public final class TitleManagerScreen extends Screen {
         }
 
         int remaining = this.payload.titles().size() - shown;
-        if (remaining > 0 && availableRows > 0) {
-            int moreY = rowY + Math.max(0, shown - 1) * 12;
+        if (remaining > 0 && needsOverflowRow) {
             graphics.drawString(
                     this.font,
                     fitToWidth("… +" + remaining, textWidth),
                     layout.listX(),
-                    moreY,
+                    rowY + shown * 12,
                     0x909090
             );
         }
