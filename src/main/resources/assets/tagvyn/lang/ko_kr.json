@@ -3,7 +3,7 @@
   "tagvyn.message.nickname_cleared": "닉네임을 초기화했습니다.",
   "tagvyn.message.nickname_limit": "닉네임 변경 가능 횟수를 모두 사용했습니다. (%s/%s)",
   "tagvyn.message.nickname_invalid": "사용할 수 없는 닉네임입니다.",
-  "tagvyn.message.nickname_prompt": "이 메시지를 클릭하여 닉네임을 설정하세요.",
+  "tagvyn.message.nickname_prompt": "닉네임이 설정되지 않았습니다. 이 메시지를 클릭하여 닉네임을 설정하세요.",
   "tagvyn.message.nickname_prompt_hover": "클릭하여 닉네임 설정 창을 엽니다.",
   "tagvyn.message.title_set": "칭호를 %s(으)로 설정했습니다.",
   "tagvyn.message.title_cleared": "칭호를 해제했습니다.",
