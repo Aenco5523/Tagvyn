@@ -2,8 +2,6 @@
 
 > A GUI-first nickname and title mod for Minecraft.
 
-**Minecraft 1.21.1 · NeoForge · Java 21 · Client + Server**
-
 Tagvyn lets players use custom nicknames and lets server operators manage text titles, PNG image titles, and title items without memorizing a pile of commands.
 
 ## Features
@@ -18,25 +16,22 @@ Tagvyn lets players use custom nicknames and lets server operators manage text t
 - Searchable title manager with editing and PNG replacement
 - Name Tag based title items that players can right-click to equip
 - Persistent nickname/title data across reconnects
+- Multiple client languages
 
 ## Installation
 
-1. Install **NeoForge for Minecraft 1.21.1**.
+1. Download a Tagvyn build that matches your **Minecraft version** and **mod loader**.
 2. Put the Tagvyn JAR in the `mods` folder on the **server**.
-3. Put the same Tagvyn JAR in the `mods` folder on every connecting **client**.
+3. Put the same matching Tagvyn JAR in the `mods` folder on every connecting **client**.
 4. Start the game/server normally.
 
-Current build naming format:
+Build filenames tell you which loader and Minecraft version they target:
 
 ```text
 Tagvyn-<loader>-<minecraft-version>-<mod-version>.jar
 ```
 
-Example:
-
-```text
-Tagvyn-neoforge-1.21.1-0.6.1.jar
-```
+Always use the release/build whose loader and Minecraft version match your installation.
 
 ## Using Tagvyn
 
@@ -76,6 +71,24 @@ An operator can select a registered title in the title manager and create a spec
 
 Players can right-click the item to equip the linked title. A successful use consumes one item outside Creative mode, and Tagvyn title Name Tags cannot be used to rename mobs.
 
+## Languages
+
+Tagvyn follows the Minecraft client's selected language.
+
+Currently bundled translations:
+
+- English
+- 한국어
+- 日本語
+- 简体中文
+- 繁體中文
+- Español
+- Français
+- Deutsch
+- Português (Brasil)
+
+Unsupported languages fall back to the default English strings provided by the mod/game resource system.
+
 ## Commands
 
 | Command | Purpose |
@@ -87,20 +100,15 @@ Most administration is intentionally handled through the GUI instead of subcomma
 
 ## Compatibility
 
-| | Current support |
-| --- | --- |
-| Minecraft | **1.21.1** |
-| Loader | **NeoForge 21.1+** |
-| Java | **21** |
-| Installation | **Client + Server** |
+Tagvyn may be released for multiple Minecraft versions and mod loaders over time.
 
-Fabric and Forge builds are not available yet.
+Do not treat this README as a fixed compatibility table. Check the **release/build filename** and release notes for the exact Minecraft version and loader supported by a particular JAR.
 
 ## Documentation
 
 This README is intentionally focused on installing and using Tagvyn.
 
-Technical documentation such as the API, configuration reference, data format, image-title internals, and porting notes will be moved to a dedicated **Wiki / developer documentation** as the project grows.
+Technical documentation such as the API, configuration reference, data format, image-title internals, and porting notes belongs in the project **Wiki / developer documentation** rather than the main README.
 
 ## License
 
