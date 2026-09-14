@@ -8,7 +8,11 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 
-public record OpenPlayerManagerPayload(List<PlayerSummary> players, List<String> titles) implements CustomPacketPayload {
+public record OpenPlayerManagerPayload(
+        List<PlayerSummary> players,
+        List<String> titles,
+        String selectedUsername
+) implements CustomPacketPayload {
     public static final Type<OpenPlayerManagerPayload> TYPE = new Type<>(
             ResourceLocation.fromNamespaceAndPath(Tagvyn.MOD_ID, "open_player_manager")
     );
@@ -16,6 +20,7 @@ public record OpenPlayerManagerPayload(List<PlayerSummary> players, List<String>
     public OpenPlayerManagerPayload {
         players = List.copyOf(players);
         titles = List.copyOf(titles);
+        selectedUsername = selectedUsername == null ? "" : selectedUsername;
     }
 
     public static final StreamCodec<RegistryFriendlyByteBuf, OpenPlayerManagerPayload> STREAM_CODEC = StreamCodec.of(
@@ -32,6 +37,7 @@ public record OpenPlayerManagerPayload(List<PlayerSummary> players, List<String>
                 for (String title : payload.titles()) {
                     buf.writeUtf(title, 64);
                 }
+                buf.writeUtf(payload.selectedUsername(), 32);
             },
             buf -> {
                 int playerCount = buf.readVarInt();
@@ -52,7 +58,7 @@ public record OpenPlayerManagerPayload(List<PlayerSummary> players, List<String>
                 for (int i = 0; i < titleCount; i++) {
                     titles.add(buf.readUtf(64));
                 }
-                return new OpenPlayerManagerPayload(players, titles);
+                return new OpenPlayerManagerPayload(players, titles, buf.readUtf(32));
             }
     );
 
