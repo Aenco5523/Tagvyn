@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.4.2
+
+- Fixed GUI layer ordering so labels and helper text render above EditBox/Button backgrounds.
+- Adjusted player-manager spacing so status and field labels no longer overlap.
+- Stopped reloading all client resource packs on every login/title-image sync.
+- The generated title-image pack now reloads only when its PNG/font contents actually change, reducing client texture side effects such as skins falling back to a default appearance.
+
 ## 0.4.1
 
 - Fixed the first-login nickname prompt opening the removed `/tagvyn nick gui` command path.

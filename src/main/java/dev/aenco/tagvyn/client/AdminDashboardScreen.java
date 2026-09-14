@@ -51,6 +51,8 @@ public final class AdminDashboardScreen extends Screen {
     @Override
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
         graphics.fill(0, 0, this.width, this.height, 0xD0101010);
+        super.render(graphics, mouseX, mouseY, partialTick);
+
         graphics.drawCenteredString(this.font, this.title, this.width / 2, 20, 0xFFFFFF);
         graphics.drawCenteredString(
                 this.font,
@@ -59,7 +61,6 @@ public final class AdminDashboardScreen extends Screen {
                 38,
                 0xA0A0A0
         );
-        super.render(graphics, mouseX, mouseY, partialTick);
     }
 
     @Override

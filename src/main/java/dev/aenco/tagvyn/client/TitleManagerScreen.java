@@ -178,6 +178,11 @@ public final class TitleManagerScreen extends Screen {
     @Override
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
         graphics.fill(0, 0, this.width, this.height, 0xD0101010);
+
+        // Render interactive widgets first. Labels and helper text are intentionally
+        // drawn afterwards so EditBox/Button backgrounds can never cover them.
+        super.render(graphics, mouseX, mouseY, partialTick);
+
         int formWidth = Math.min(280, this.width - 40);
         int x = (this.width - formWidth) / 2;
         int y = Math.max(52, this.height / 2 - 72);
@@ -190,12 +195,12 @@ public final class TitleManagerScreen extends Screen {
         Component drop = this.selectedPng == null
                 ? Component.translatable("tagvyn.gui.titles.drop_png")
                 : Component.translatable("tagvyn.gui.titles.selected_png", this.selectedFile, this.selectedPng.length / 1024);
-        graphics.drawCenteredString(this.font, drop, this.width / 2, y + 140, this.selectedPng == null ? 0xB0B0B0 : 0x80FF80);
+        graphics.drawCenteredString(this.font, drop, this.width / 2, y + 144, this.selectedPng == null ? 0xB0B0B0 : 0x80FF80);
         if (!this.localError.isBlank()) {
-            graphics.drawCenteredString(this.font, Component.translatable(this.localError), this.width / 2, y + 153, 0xFF7070);
+            graphics.drawCenteredString(this.font, Component.translatable(this.localError), this.width / 2, y + 157, 0xFF7070);
         }
 
-        int listY = y + 170;
+        int listY = y + 176;
         graphics.drawString(
                 this.font,
                 Component.translatable("tagvyn.gui.titles.existing", this.payload.titles().size()),
@@ -214,8 +219,6 @@ public final class TitleManagerScreen extends Screen {
         if (this.payload.titles().size() > shown) {
             graphics.drawString(this.font, "... +" + (this.payload.titles().size() - shown), 12, listY + 13 + shown * 11, 0x909090);
         }
-
-        super.render(graphics, mouseX, mouseY, partialTick);
     }
 
     @Override
