@@ -33,6 +33,11 @@ jobs:
             branch="${remote#origin/}"
 
             case "$branch" in
+              ci/verify-*)
+                echo "Deleting obsolete verification branch: $branch"
+                git push origin --delete "$branch"
+                continue
+                ;;
               feature/*|ci/*) ;;
               *) continue ;;
             esac
