@@ -8,6 +8,7 @@ on:
 
 permissions:
   contents: write
+  pull-requests: read
 
 jobs:
   cleanup:
@@ -20,9 +21,12 @@ jobs:
 
       - name: Delete merged work branches
         shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
           git fetch origin '+refs/heads/*:refs/remotes/origin/*' --prune
+          owner="${GITHUB_REPOSITORY%%/*}"
 
           while IFS= read -r remote; do
             [ -n "$remote" ] || continue
@@ -33,10 +37,16 @@ jobs:
               *) continue ;;
             esac
 
-            if git merge-base --is-ancestor "$remote" origin/main; then
+            merged_count="$(gh api -X GET "repos/${GITHUB_REPOSITORY}/pulls" \
+              -f state=closed \
+              -f head="${owner}:${branch}" \
+              -f per_page=100 \
+              --jq '[.[] | select(.merged_at != null)] | length')"
+
+            if [ "$merged_count" -gt 0 ]; then
               echo "Deleting merged branch: $branch"
               git push origin --delete "$branch"
             else
-              echo "Keeping unmerged branch: $branch"
+              echo "Keeping branch without merged PR: $branch"
             fi
           done < <(git for-each-ref --format='%(refname:short)' refs/remotes/origin/feature refs/remotes/origin/ci)
