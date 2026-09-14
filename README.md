@@ -10,6 +10,7 @@ Tagvyn is a Minecraft 1.21.1 NeoForge nickname/title mod using the package `dev.
 - GUI-first OP administration: player management, title management and reload/sync actions are handled from the admin dashboard.
 - Searchable player manager for larger servers.
 - Searchable/selectable title manager with in-place editing and PNG replacement.
+- Name Tag based consumable title items that players can right-click to equip a title.
 - Public integration API (`dev.aenco.tagvyn.api.TagvynAPI`).
 - Persistent synced identity data.
 - Layout intended for future Fabric/Forge and newer-version ports.
@@ -40,7 +41,7 @@ Non-operators using `/tagvyn` are sent directly to their own nickname editor ins
 
 Open **Title Manager** from the admin dashboard.
 
-Registered titles are shown in a searchable, scrollable list. Click a title to load its ID, display text and color into the editor. Existing title IDs are treated as fixed identifiers; you can edit text/color, replace or add a PNG, or delete the selected title without typing its ID again.
+Registered titles are shown in a searchable, scrollable list. Click a title to load its ID, display text and color into the editor. Existing title IDs are treated as fixed identifiers; you can edit text/color, replace or add a PNG, delete the selected title, or create a title item without typing its ID again.
 
 Click **New Title** to return to new-title mode. To create or replace an image title, drag a normal PNG file from the desktop onto the Minecraft window and use **Add / Replace PNG**.
 
@@ -57,6 +58,16 @@ config/tagvyn/images/<title-id>.png
 ```
 
 Tagvyn automatically synchronizes uploaded images to clients. Clients build an always-active generated resource pack under their local Tagvyn config directory. The private-use bitmap-font mapping required by Minecraft text rendering is generated internally; server admins do **not** need to make a resource pack, choose a glyph, or type a font ID.
+
+## Title items
+
+Select an existing title in the title manager and click **Get Selected Title Item**. The operator receives a glowing vanilla Name Tag that stores the selected title ID in its item data.
+
+- Right-click the title item in the air to equip that title.
+- One item is consumed after a successful use. Creative-mode players do not consume it.
+- Tagvyn title Name Tags cannot be used to rename mobs.
+- If the title text/color/PNG is edited later, existing items still resolve the current title by ID.
+- If the title is deleted, old items become invalid and are not consumed.
 
 ## Commands
 

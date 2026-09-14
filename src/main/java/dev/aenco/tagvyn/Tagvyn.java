@@ -5,6 +5,7 @@ import dev.aenco.tagvyn.client.TagvynClientResourcePack;
 import dev.aenco.tagvyn.config.TagvynConfig;
 import dev.aenco.tagvyn.data.TagvynAttachments;
 import dev.aenco.tagvyn.network.TagvynNetwork;
+import dev.aenco.tagvyn.network.TitleItemNetwork;
 import dev.aenco.tagvyn.service.NeoForgeTagvynApi;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.IEventBus;
@@ -23,6 +24,7 @@ public final class Tagvyn {
     public Tagvyn(IEventBus modBus, ModContainer modContainer) {
         TagvynAttachments.register(modBus);
         TagvynNetwork.register(modBus);
+        TitleItemNetwork.register(modBus);
         if (FMLEnvironment.dist == Dist.CLIENT) {
             TagvynClientResourcePack.register(modBus);
         }

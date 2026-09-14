@@ -9,7 +9,7 @@ displayName="${mod_name}"
 authors="Aenco"
 description='''
 GUI-first nickname and title system with synced TAB, chat/display names and player name tags.
-Operators manage players and titles from the in-game Tagvyn dashboard opened with /tagvyn.
+Operators manage players, titles and Name Tag based title items from the in-game Tagvyn dashboard opened with /tagvyn.
 '''
 
 [[dependencies.${mod_id}]]
