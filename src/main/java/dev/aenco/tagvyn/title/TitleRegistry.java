@@ -13,14 +13,20 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import net.neoforged.fml.loading.FMLPaths;
 
 public final class TitleRegistry {
+    public static final String UPLOADED_IMAGE_FONT = "tagvyn:uploaded";
+    private static final int GLYPH_START = 0xE000;
+    private static final int GLYPH_END = 0xF8FF;
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
     private static final Map<String, TitleDefinition> TITLES = new LinkedHashMap<>();
 
@@ -67,6 +73,13 @@ public final class TitleRegistry {
         return Collections.unmodifiableList(new ArrayList<>(TITLES.values()));
     }
 
+    public static synchronized List<TitleDefinition> uploadedImages() {
+        return TITLES.values().stream()
+                .filter(TitleRegistry::isUploadedImage)
+                .filter(definition -> TitleImageStore.exists(definition.id()))
+                .toList();
+    }
+
     public static synchronized boolean register(TitleDefinition definition, boolean overwrite) {
         TitleDefinition normalized = normalize(definition);
         if (normalized == null) return false;
@@ -81,6 +94,26 @@ public final class TitleRegistry {
         return true;
     }
 
+    public static synchronized boolean registerUploadedImage(String id, String text, int color, boolean overwrite) {
+        String normalizedId = normalizeId(id);
+        if (!isValidId(normalizedId)) return false;
+        TitleDefinition existing = TITLES.get(normalizedId);
+        if (existing != null && !overwrite) return false;
+
+        String glyph = existing != null && isUploadedImage(existing) && !existing.imageGlyph().isBlank()
+                ? existing.imageGlyph()
+                : allocateGlyph();
+        if (glyph.isBlank()) return false;
+
+        return register(new TitleDefinition(
+                normalizedId,
+                Objects.requireNonNullElse(text, "").trim(),
+                color & 0xFFFFFF,
+                UPLOADED_IMAGE_FONT,
+                glyph
+        ), overwrite);
+    }
+
     public static synchronized boolean remove(String id) {
         String normalizedId = normalizeId(id);
         TitleDefinition removed = TITLES.remove(normalizedId);
@@ -89,11 +122,32 @@ public final class TitleRegistry {
             TITLES.put(normalizedId, removed);
             return false;
         }
+        if (isUploadedImage(removed)) {
+            TitleImageStore.delete(normalizedId);
+        }
         return true;
+    }
+
+    public static boolean isUploadedImage(TitleDefinition definition) {
+        return definition != null
+                && UPLOADED_IMAGE_FONT.equals(definition.imageFont())
+                && !definition.imageGlyph().isBlank();
     }
 
     public static boolean isValidId(String id) {
         return id != null && normalizeId(id).matches("[a-z0-9_.-]{1,64}");
+    }
+
+    private static String allocateGlyph() {
+        Set<Integer> used = new HashSet<>();
+        for (TitleDefinition definition : TITLES.values()) {
+            if (!isUploadedImage(definition) || definition.imageGlyph().isBlank()) continue;
+            used.add(definition.imageGlyph().codePointAt(0));
+        }
+        for (int codePoint = GLYPH_START; codePoint <= GLYPH_END; codePoint++) {
+            if (!used.contains(codePoint)) return new String(Character.toChars(codePoint));
+        }
+        return "";
     }
 
     private static boolean save() {
@@ -122,8 +176,13 @@ public final class TitleRegistry {
         String imageGlyph = "";
         if (object.has("image") && object.get("image").isJsonObject()) {
             JsonObject image = object.getAsJsonObject("image");
-            imageFont = getString(image, "font", "");
-            imageGlyph = getString(image, "glyph", "");
+            if (image.has("uploaded") && image.get("uploaded").getAsBoolean()) {
+                imageFont = UPLOADED_IMAGE_FONT;
+                imageGlyph = getString(image, "glyph", "");
+            } else {
+                imageFont = getString(image, "font", "");
+                imageGlyph = getString(image, "glyph", "");
+            }
         }
 
         TitleDefinition normalized = normalize(new TitleDefinition(id, text, color, imageFont, imageGlyph));
@@ -138,10 +197,17 @@ public final class TitleRegistry {
         object.addProperty("id", definition.id());
         object.addProperty("text", definition.text());
         object.addProperty("color", String.format("#%06X", definition.color() & 0xFFFFFF));
-        JsonObject image = new JsonObject();
-        image.addProperty("font", definition.imageFont());
-        image.addProperty("glyph", definition.imageGlyph());
-        object.add("image", image);
+        if (definition.hasImage()) {
+            JsonObject image = new JsonObject();
+            if (isUploadedImage(definition)) {
+                image.addProperty("uploaded", true);
+                image.addProperty("glyph", definition.imageGlyph());
+            } else {
+                image.addProperty("font", definition.imageFont());
+                image.addProperty("glyph", definition.imageGlyph());
+            }
+            object.add("image", image);
+        }
         return object;
     }
 
@@ -183,17 +249,11 @@ public final class TitleRegistry {
     private static String defaultConfig() {
         JsonObject root = new JsonObject();
         JsonArray titles = new JsonArray();
-
         JsonObject example = new JsonObject();
         example.addProperty("id", "founder");
         example.addProperty("text", "FOUNDER");
         example.addProperty("color", "#FFB347");
-        JsonObject image = new JsonObject();
-        image.addProperty("font", "");
-        image.addProperty("glyph", "");
-        example.add("image", image);
         titles.add(example);
-
         root.add("titles", titles);
         return GSON.toJson(root) + System.lineSeparator();
     }
