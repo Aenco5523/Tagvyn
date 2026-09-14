@@ -15,6 +15,7 @@ Tagvyn is a GUI-first nickname and title system for Minecraft. The public integr
 - [Configuration](Configuration.md) — nickname limits, validation rules, and display options.
 - [Titles and Images](Titles-and-Images.md) — title IDs, `titles.json`, uploaded PNGs, generated glyphs, synchronization, and title items.
 - [Networking](Networking.md) — payload groups, protocol versioning, validation, and client/server responsibilities.
+- [Localization](Localization.md) — translation keys, CI validation, placeholders, and multilingual UI guidance.
 - [Build and Porting](Build-and-Porting.md) — development setup, output naming, CI expectations, and loader/version porting guidance.
 
 ## Integration principles
