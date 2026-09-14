@@ -28,14 +28,6 @@ Operators can search for a player, edit their nickname, assign or remove a title
 
 Tagvyn is a **client + server mod**. Install the same compatible Tagvyn build on the server and on every connecting client.
 
-Choose a JAR that matches both your **Minecraft version** and **mod loader**. Build filenames use this format:
-
-```text
-Tagvyn-<loader>-<minecraft-version>-<mod-version>.jar
-```
-
-The README is intentionally not tied to one permanent Minecraft version or loader. Check the release/build filename and release notes for the exact environment supported by a particular JAR.
-
 Tagvyn changes a player's **displayed nickname/title**. It does **not** replace the authenticated Minecraft account name, UUID, or GameProfile. Vanilla selectors and commands that target the real username continue to use the real username.
 
 ## Installation
@@ -104,14 +96,8 @@ Unsupported languages fall back to the default English strings provided by the m
 
 Tagvyn may be released for multiple Minecraft versions and mod loaders over time. Use the loader and Minecraft version encoded in the JAR filename and documented in that release.
 
-## Documentation
-
-This README is focused on what Tagvyn does, why you might want it, what you need before installing it, and how to start using it.
-
-Technical material such as the public API, configuration reference, data formats, image-title internals, and porting notes belongs in the project **Wiki / developer documentation** rather than the main README.
-
 ## License
 
 Tagvyn is distributed under a custom **All Rights Reserved** license. Official unmodified releases may be downloaded and used for normal Minecraft gameplay and server operation. Modification, redistribution, repackaging, or commercial use is not permitted unless the license or the copyright holder explicitly allows it.
 
-See [`LICENSE`](LICENSE) for the full terms.
+See [`LICENSE`](https://raw.githubusercontent.com/Aenco5523/Tagvyn/refs/heads/main/LICENSE) for the full terms.
