@@ -96,6 +96,12 @@ Unsupported languages fall back to the default English strings provided by the m
 
 Tagvyn may be released for multiple Minecraft versions and mod loaders over time. Use the loader and Minecraft version encoded in the JAR filename and documented in that release.
 
+## Developer documentation
+
+Developers integrating with Tagvyn, maintaining it, or porting it to another loader/version should start with the **[Tagvyn Developer Wiki](docs/wiki/Home.md)**.
+
+The developer Wiki contains the public API reference, architecture, configuration behavior, title/image internals, networking notes, localization guidance, and build/porting documentation. Low-level technical details intentionally live there instead of expanding the main user README.
+
 ## License
 
 Tagvyn is distributed under a custom **All Rights Reserved** license. Official unmodified releases may be downloaded and used for normal Minecraft gameplay and server operation. Modification, redistribution, repackaging, or commercial use is not permitted unless the license or the copyright holder explicitly allows it.
