@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.6.3
+
+- Reworked the player manager layout into distinct player-info, nickname, and title-management sections.
+- Fixed overlap between nickname reset controls and current-title/title-search text at smaller GUI-scaled resolutions.
+- Reworked title-manager field spacing so labels always have their own line above ID, display-text, and color inputs.
+- Lowered the title manager two-column breakpoint so common GUI-scaled window sizes keep the title list beside the editor instead of pushing it below the visible area.
+- Added clearer panel grouping and width-aware text clipping for long localized UI strings.
+
 ## 0.6.2
 
 - Expanded localization from Korean/English to nine bundled client languages: English, Korean, Japanese, Simplified Chinese, Traditional Chinese, Spanish, French, German, and Brazilian Portuguese.
