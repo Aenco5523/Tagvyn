@@ -3,6 +3,7 @@ package dev.aenco.tagvyn.client;
 import dev.aenco.tagvyn.network.AdminDashboardActionPayload;
 import dev.aenco.tagvyn.network.CreateTextTitlePayload;
 import dev.aenco.tagvyn.network.DeleteTitlePayload;
+import dev.aenco.tagvyn.network.GiveTitleItemPayload;
 import dev.aenco.tagvyn.network.OpenTitleManagerPayload;
 import dev.aenco.tagvyn.network.UpdateTitlePayload;
 import dev.aenco.tagvyn.network.UploadImageTitlePayload;
@@ -35,6 +36,7 @@ public final class TitleManagerScreen extends Screen {
     private Button saveImageButton;
     private Button newButton;
     private Button deleteButton;
+    private Button titleItemButton;
     private byte[] selectedPng;
     private String selectedFile = "";
     private String localError = "";
@@ -86,10 +88,15 @@ public final class TitleManagerScreen extends Screen {
                 button -> deleteSelectedTitle()
         ).bounds(x + half + 2, y + 112, width - half - 2, 20).build());
 
+        this.titleItemButton = this.addRenderableWidget(Button.builder(
+                Component.translatable("tagvyn.gui.titles.give_item"),
+                button -> giveTitleItem()
+        ).bounds(x, y + 138, width, 20).build());
+
         this.addRenderableWidget(Button.builder(
                 Component.translatable("tagvyn.gui.back"),
                 button -> PacketDistributor.sendToServer(new AdminDashboardActionPayload("dashboard"))
-        ).bounds(x, y + 138, width, 20).build());
+        ).bounds(x, y + 164, width, 20).build());
 
         this.searchBox = new EditBox(
                 this.font,
@@ -172,6 +179,11 @@ public final class TitleManagerScreen extends Screen {
         ));
     }
 
+    private void giveTitleItem() {
+        if (this.selectedTitleId.isBlank()) return;
+        PacketDistributor.sendToServer(new GiveTitleItemPayload(this.selectedTitleId));
+    }
+
     private void newTitle() {
         this.selectedTitleId = "";
         this.selectedPng = null;
@@ -242,6 +254,7 @@ public final class TitleManagerScreen extends Screen {
                 || (this.textBox != null && !this.textBox.getValue().isBlank())
                 || this.selectedPng != null;
         this.deleteButton.active = selected;
+        this.titleItemButton.active = selected;
     }
 
     private boolean validId() {
@@ -336,7 +349,7 @@ public final class TitleManagerScreen extends Screen {
         String selected = this.selectedTitleId.isBlank()
                 ? Component.translatable("tagvyn.gui.titles.new_mode").getString()
                 : Component.translatable("tagvyn.gui.titles.selected", this.selectedTitleId).getString();
-        graphics.drawString(this.font, fitToWidth(selected, layout.formWidth()), layout.formX(), layout.formY() + 164, 0xD0D0D0);
+        graphics.drawString(this.font, fitToWidth(selected, layout.formWidth()), layout.formX(), layout.formY() + 190, 0xD0D0D0);
 
         Component drop = this.selectedPng == null
                 ? Component.translatable("tagvyn.gui.titles.drop_png_short")
@@ -345,7 +358,7 @@ public final class TitleManagerScreen extends Screen {
                 this.font,
                 fitToWidth(drop.getString(), layout.formWidth()),
                 layout.formX(),
-                layout.formY() + 176,
+                layout.formY() + 202,
                 this.selectedPng == null ? 0x909090 : 0x80FF80
         );
         if (!this.localError.isBlank()) {
@@ -353,7 +366,7 @@ public final class TitleManagerScreen extends Screen {
                     this.font,
                     fitToWidth(Component.translatable(this.localError).getString(), layout.formWidth()),
                     layout.formX(),
-                    layout.formY() + 188,
+                    layout.formY() + 214,
                     0xFF7070
             );
         }
@@ -436,17 +449,17 @@ public final class TitleManagerScreen extends Screen {
             int searchY = 68;
             int rowsY = 92;
             int listBottom = Math.max(rowsY + ROW_HEIGHT, this.height - 14);
-            return new Layout(formX, formY, formWidth, formY + 202, listX, listTop, searchY, rowsY, listWidth, listBottom, true);
+            return new Layout(formX, formY, formWidth, formY + 228, listX, listTop, searchY, rowsY, listWidth, listBottom, true);
         }
 
         formWidth = Math.max(120, Math.min(FORM_MAX_WIDTH, this.width - 40));
         formX = (this.width - formWidth) / 2;
         int listX = formX;
-        int listTop = formY + 216;
+        int listTop = formY + 242;
         int searchY = listTop + 20;
         int rowsY = searchY + 24;
         int listBottom = Math.max(rowsY + ROW_HEIGHT, this.height - 10);
-        return new Layout(formX, formY, formWidth, formY + 202, listX, listTop, searchY, rowsY, formWidth, listBottom, false);
+        return new Layout(formX, formY, formWidth, formY + 228, listX, listTop, searchY, rowsY, formWidth, listBottom, false);
     }
 
     private record Layout(
