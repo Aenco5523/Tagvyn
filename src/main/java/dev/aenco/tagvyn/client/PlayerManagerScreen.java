@@ -15,6 +15,10 @@ import net.neoforged.neoforge.network.PacketDistributor;
 public final class PlayerManagerScreen extends Screen {
     private static final int PLAYER_ROW_HEIGHT = 24;
     private static final int TITLE_ROW_HEIGHT = 18;
+    private static final int CONTROL_HEIGHT = 20;
+    private static final int CONTROL_GAP = 4;
+    private static final int LABEL_GAP = 3;
+    private static final int SECTION_GAP = 10;
 
     private final OpenPlayerManagerPayload payload;
     private String selectedUsername = "";
@@ -44,9 +48,9 @@ public final class PlayerManagerScreen extends Screen {
         this.playerSearchBox = new EditBox(
                 this.font,
                 layout.leftX(),
-                layout.searchY(),
+                layout.playerSearchY(),
                 layout.leftWidth(),
-                20,
+                CONTROL_HEIGHT,
                 Component.translatable("tagvyn.gui.players.search")
         );
         this.playerSearchBox.setMaxLength(64);
@@ -61,7 +65,7 @@ public final class PlayerManagerScreen extends Screen {
                 layout.rightX(),
                 layout.nicknameY(),
                 layout.rightWidth(),
-                20,
+                CONTROL_HEIGHT,
                 Component.translatable("tagvyn.gui.players.nickname")
         );
         this.nicknameBox.setMaxLength(64);
@@ -72,24 +76,24 @@ public final class PlayerManagerScreen extends Screen {
         this.saveNicknameButton = this.addRenderableWidget(Button.builder(
                 Component.translatable("tagvyn.gui.players.save_nickname"),
                 button -> sendPlayerAction("set_nickname", this.nicknameBox.getValue())
-        ).bounds(layout.rightX(), layout.nicknameButtonsY(), half - 2, 20).build());
+        ).bounds(layout.rightX(), layout.nicknameButtonsY(), half - 2, CONTROL_HEIGHT).build());
 
         this.clearNicknameButton = this.addRenderableWidget(Button.builder(
                 Component.translatable("tagvyn.gui.players.clear_nickname"),
                 button -> sendPlayerAction("clear_nickname", "")
-        ).bounds(layout.rightX() + half + 2, layout.nicknameButtonsY(), layout.rightWidth() - half - 2, 20).build());
+        ).bounds(layout.rightX() + half + 2, layout.nicknameButtonsY(), layout.rightWidth() - half - 2, CONTROL_HEIGHT).build());
 
         this.resetCountButton = this.addRenderableWidget(Button.builder(
                 Component.translatable("tagvyn.gui.players.reset_count"),
                 button -> sendPlayerAction("reset_count", "")
-        ).bounds(layout.rightX(), layout.resetY(), layout.rightWidth(), 20).build());
+        ).bounds(layout.rightX(), layout.resetY(), layout.rightWidth(), CONTROL_HEIGHT).build());
 
         this.titleSearchBox = new EditBox(
                 this.font,
                 layout.rightX(),
                 layout.titleSearchY(),
                 layout.rightWidth(),
-                20,
+                CONTROL_HEIGHT,
                 Component.translatable("tagvyn.gui.players.title_search")
         );
         this.titleSearchBox.setMaxLength(64);
@@ -102,17 +106,17 @@ public final class PlayerManagerScreen extends Screen {
         this.applyTitleButton = this.addRenderableWidget(Button.builder(
                 Component.translatable("tagvyn.gui.players.apply_title"),
                 button -> sendPlayerAction("set_title", this.selectedTitleId)
-        ).bounds(layout.rightX(), layout.titleButtonsY(), half - 2, 20).build());
+        ).bounds(layout.rightX(), layout.titleButtonsY(), half - 2, CONTROL_HEIGHT).build());
 
         this.clearTitleButton = this.addRenderableWidget(Button.builder(
                 Component.translatable("tagvyn.gui.players.clear_title"),
                 button -> sendPlayerAction("clear_title", "")
-        ).bounds(layout.rightX() + half + 2, layout.titleButtonsY(), layout.rightWidth() - half - 2, 20).build());
+        ).bounds(layout.rightX() + half + 2, layout.titleButtonsY(), layout.rightWidth() - half - 2, CONTROL_HEIGHT).build());
 
         this.addRenderableWidget(Button.builder(
                 Component.translatable("tagvyn.gui.back"),
                 button -> PacketDistributor.sendToServer(new AdminDashboardActionPayload("dashboard"))
-        ).bounds(layout.rightX(), layout.backY(), layout.rightWidth(), 20).build());
+        ).bounds(layout.rightX(), layout.backY(), layout.rightWidth(), CONTROL_HEIGHT).build());
 
         ensureSelectedPlayer();
         loadSelectedPlayer();
@@ -262,21 +266,31 @@ public final class PlayerManagerScreen extends Screen {
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
         Layout layout = layout();
         graphics.fill(0, 0, this.width, this.height, 0xD0101010);
-        graphics.fill(layout.leftX() - 6, 43, layout.leftX() + layout.leftWidth() + 6, layout.bottom() + 5, 0x70181818);
-        graphics.fill(layout.rightX() - 6, 43, layout.rightX() + layout.rightWidth() + 6, layout.bottom() + 5, 0x70181818);
+        graphics.fill(layout.leftX() - 6, layout.panelTop(), layout.leftX() + layout.leftWidth() + 6, layout.bottom() + 5, 0x70181818);
+        graphics.fill(layout.rightX() - 6, layout.panelTop(), layout.rightX() + layout.rightWidth() + 6, layout.bottom() + 5, 0x70181818);
+
+        graphics.fill(layout.rightX(), layout.infoY(), layout.rightX() + layout.rightWidth(), layout.infoY() + layout.infoHeight(), 0x40282828);
+        graphics.fill(layout.rightX(), layout.nicknameLabelY() - 5, layout.rightX() + layout.rightWidth(), layout.resetY() + CONTROL_HEIGHT + 5, 0x25202020);
+        graphics.fill(layout.rightX(), layout.titleLabelY() - 5, layout.rightX() + layout.rightWidth(), layout.titleButtonsY() + CONTROL_HEIGHT + 5, 0x25202020);
 
         super.render(graphics, mouseX, mouseY, partialTick);
 
-        graphics.drawCenteredString(this.font, this.title, this.width / 2, 14, 0xFFFFFF);
-        graphics.drawCenteredString(
-                this.font,
-                Component.translatable("tagvyn.gui.players.description"),
-                this.width / 2,
-                28,
-                0xA0A0A0
-        );
+        graphics.drawCenteredString(this.font, this.title, this.width / 2, layout.titleY(), 0xFFFFFF);
+        if (!layout.compact()) {
+            String description = fitToWidth(
+                    Component.translatable("tagvyn.gui.players.description").getString(),
+                    Math.max(80, this.width - 24)
+            );
+            graphics.drawCenteredString(this.font, description, this.width / 2, layout.descriptionY(), 0xA0A0A0);
+        }
 
-        graphics.drawString(this.font, Component.translatable("tagvyn.gui.players.search"), layout.leftX(), 47, 0xB0B0B0);
+        graphics.drawString(
+                this.font,
+                Component.translatable("tagvyn.gui.players.search"),
+                layout.leftX(),
+                layout.playerSearchLabelY(),
+                0xB0B0B0
+        );
         renderPlayerList(graphics, layout);
         renderPlayerDetails(graphics, layout);
         renderTitleList(graphics, layout);
@@ -323,34 +337,49 @@ public final class PlayerManagerScreen extends Screen {
                 : selected.username();
         graphics.drawString(
                 this.font,
-                Component.translatable("tagvyn.gui.players.selected", fitToWidth(selectedName, layout.rightWidth() - 72)),
-                layout.rightX(),
-                47,
+                fitToWidth(Component.translatable("tagvyn.gui.players.selected", selectedName).getString(), layout.rightWidth() - 8),
+                layout.rightX() + 4,
+                layout.infoY() + 4,
                 0xFFFFFF
         );
 
+        String stats = "";
+        String current = Component.translatable("tagvyn.gui.players.no_title").getString();
         if (selected != null) {
             String remaining = selected.remainingChanges() < 0 ? "∞" : Integer.toString(selected.remainingChanges());
+            stats = Component.translatable("tagvyn.gui.players.stats", selected.nicknameChanges(), remaining).getString();
+            if (!selected.titleId().isBlank()) current = selected.titleId();
+        }
+        if (!stats.isBlank()) {
             graphics.drawString(
                     this.font,
-                    Component.translatable("tagvyn.gui.players.stats", selected.nicknameChanges(), remaining),
-                    layout.rightX(),
-                    59,
+                    fitToWidth(stats, layout.rightWidth() - 8),
+                    layout.rightX() + 4,
+                    layout.infoY() + 14,
                     0x909090
             );
         }
-
-        graphics.drawString(this.font, Component.translatable("tagvyn.gui.players.nickname"), layout.rightX(), layout.nicknameY() - 10, 0xB0B0B0);
-        graphics.drawString(this.font, Component.translatable("tagvyn.gui.players.title_label"), layout.rightX(), layout.titleSearchY() - 10, 0xB0B0B0);
-        String current = selected == null || selected.titleId().isBlank()
-                ? Component.translatable("tagvyn.gui.players.no_title").getString()
-                : selected.titleId();
         graphics.drawString(
                 this.font,
-                Component.translatable("tagvyn.gui.players.current_title", fitToWidth(current, layout.rightWidth() - 90)),
+                fitToWidth(Component.translatable("tagvyn.gui.players.current_title", current).getString(), layout.rightWidth() - 8),
+                layout.rightX() + 4,
+                layout.infoY() + 24,
+                0xB0B0B0
+        );
+
+        graphics.drawString(
+                this.font,
+                Component.translatable("tagvyn.gui.players.nickname"),
                 layout.rightX(),
-                layout.titleSearchY() - 22,
-                0x909090
+                layout.nicknameLabelY(),
+                0xD0D0D0
+        );
+        graphics.drawString(
+                this.font,
+                Component.translatable("tagvyn.gui.players.title_label"),
+                layout.rightX(),
+                layout.titleLabelY(),
+                0xD0D0D0
         );
     }
 
@@ -404,47 +433,70 @@ public final class PlayerManagerScreen extends Screen {
     }
 
     private Layout layout() {
-        int totalWidth = Math.max(300, Math.min(660, this.width - 24));
+        boolean compact = this.height < 300;
+        int titleY = compact ? 7 : 12;
+        int descriptionY = 26;
+        int panelTop = compact ? 26 : 42;
+        int bottom = Math.max(panelTop + 180, this.height - 12);
+
+        int totalWidth = Math.max(300, Math.min(700, this.width - 24));
         int gap = 12;
-        int leftWidth = Math.max(110, Math.min(200, totalWidth / 3));
+        int leftWidth = Math.max(110, Math.min(210, totalWidth / 3));
         int rightWidth = totalWidth - leftWidth - gap;
-        if (rightWidth < 210) {
-            leftWidth = Math.max(90, totalWidth - gap - 210);
+        if (rightWidth < 220) {
+            leftWidth = Math.max(90, totalWidth - gap - 220);
             rightWidth = totalWidth - leftWidth - gap;
         }
         int leftX = (this.width - totalWidth) / 2;
         int rightX = leftX + leftWidth + gap;
-        int bottom = Math.max(210, this.height - 12);
-        int searchY = 58;
-        int playerListY = 82;
-        int playerListHeight = Math.max(48, bottom - playerListY);
 
-        int nicknameY = 80;
-        int nicknameButtonsY = 104;
-        int resetY = 128;
-        int titleSearchY = 164;
-        int titleListY = 188;
-        int backY = bottom - 20;
-        int titleButtonsY = backY - 24;
-        int titleListHeight = Math.max(18, titleButtonsY - 4 - titleListY);
+        int playerSearchLabelY = panelTop + 5;
+        int playerSearchY = playerSearchLabelY + this.font.lineHeight + LABEL_GAP;
+        int playerListY = playerSearchY + CONTROL_HEIGHT + 6;
+        int playerListHeight = Math.max(PLAYER_ROW_HEIGHT, bottom - playerListY);
+
+        int infoY = panelTop + 5;
+        int infoHeight = 37;
+
+        int nicknameLabelY = infoY + infoHeight + SECTION_GAP;
+        int nicknameY = nicknameLabelY + this.font.lineHeight + LABEL_GAP;
+        int nicknameButtonsY = nicknameY + CONTROL_HEIGHT + CONTROL_GAP;
+        int resetY = nicknameButtonsY + CONTROL_HEIGHT + CONTROL_GAP;
+
+        int titleLabelY = resetY + CONTROL_HEIGHT + SECTION_GAP + 2;
+        int titleSearchY = titleLabelY + this.font.lineHeight + LABEL_GAP;
+        int titleListY = titleSearchY + CONTROL_HEIGHT + 6;
+
+        int backY = bottom - CONTROL_HEIGHT;
+        int titleButtonsY = backY - CONTROL_HEIGHT - CONTROL_GAP;
+        int titleListHeight = Math.max(TITLE_ROW_HEIGHT, titleButtonsY - 5 - titleListY);
 
         return new Layout(
                 leftX,
                 leftWidth,
                 rightX,
                 rightWidth,
-                searchY,
+                panelTop,
+                bottom,
+                titleY,
+                descriptionY,
+                compact,
+                playerSearchLabelY,
+                playerSearchY,
                 playerListY,
                 playerListHeight,
+                infoY,
+                infoHeight,
+                nicknameLabelY,
                 nicknameY,
                 nicknameButtonsY,
                 resetY,
+                titleLabelY,
                 titleSearchY,
                 titleListY,
                 titleListHeight,
                 titleButtonsY,
-                backY,
-                bottom
+                backY
         );
     }
 
@@ -453,18 +505,27 @@ public final class PlayerManagerScreen extends Screen {
             int leftWidth,
             int rightX,
             int rightWidth,
-            int searchY,
+            int panelTop,
+            int bottom,
+            int titleY,
+            int descriptionY,
+            boolean compact,
+            int playerSearchLabelY,
+            int playerSearchY,
             int playerListY,
             int playerListHeight,
+            int infoY,
+            int infoHeight,
+            int nicknameLabelY,
             int nicknameY,
             int nicknameButtonsY,
             int resetY,
+            int titleLabelY,
             int titleSearchY,
             int titleListY,
             int titleListHeight,
             int titleButtonsY,
-            int backY,
-            int bottom
+            int backY
     ) {}
 
     @Override
