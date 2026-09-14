@@ -16,6 +16,28 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.14.3'
+      - name: Validate language files
+        shell: python
+        run: |
+          import json
+          from pathlib import Path
+
+          lang_dir = Path('src/main/resources/assets/tagvyn/lang')
+          base = json.loads((lang_dir / 'en_us.json').read_text(encoding='utf-8'))
+          base_keys = set(base)
+
+          for path in sorted(lang_dir.glob('*.json')):
+              data = json.loads(path.read_text(encoding='utf-8'))
+              keys = set(data)
+              missing = sorted(base_keys - keys)
+              extra = sorted(keys - base_keys)
+              if missing or extra:
+                  raise SystemExit(f'{path.name}: missing={missing}, extra={extra}')
+              for key, english in base.items():
+                  if data[key].count('%s') != english.count('%s'):
+                      raise SystemExit(f'{path.name}: placeholder mismatch for {key}')
+
+          print(f'Validated {len(list(lang_dir.glob("*.json")))} language files with {len(base_keys)} keys each.')
       - id: build_info
         shell: bash
         run: |
