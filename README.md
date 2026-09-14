@@ -1,43 +1,55 @@
 # Tagvyn
 
-> A GUI-first nickname and title mod for Minecraft.
+> GUI-first nickname and title management for Minecraft servers.
 
-Tagvyn lets players use custom nicknames and lets server operators manage text titles, PNG image titles, and title items without memorizing a pile of commands.
+Tagvyn gives players customizable nicknames and titles while giving server operators a GUI-first way to manage how players are presented in-game. It supports text titles, RGB colors, PNG image titles, and reusable server-defined title systems without requiring operators to memorize a large command tree.
 
-## Features
+## What Tagvyn adds
 
 - Custom player nicknames
 - Text titles with RGB colors
-- PNG image titles
+- PNG image titles synchronized by Tagvyn
 - Nicknames and titles in TAB, chat/display names, and player name tags
-- First-join nickname setup prompt and GUI
-- GUI-first admin dashboard for operators
-- Searchable player management for larger servers
-- Searchable title manager with editing and PNG replacement
+- A first-join nickname setup prompt and GUI
+- A GUI-first operator dashboard
+- Searchable player and title management for larger servers
+- Scrollable admin panels designed for different GUI scales and translated text lengths
 - Name Tag based title items that players can right-click to equip
 - Persistent nickname/title data across reconnects
-- Multiple client languages
+- Multiple bundled client languages
 
-## Installation
+## Why use Tagvyn?
 
-1. Download a Tagvyn build that matches your **Minecraft version** and **mod loader**.
-2. Put the Tagvyn JAR in the `mods` folder on the **server**.
-3. Put the same matching Tagvyn JAR in the `mods` folder on every connecting **client**.
-4. Start the game/server normally.
+Tagvyn is intended for servers that want ranks, roles, event titles, community titles, or custom player identities without turning routine administration into a command-heavy workflow.
 
-Build filenames tell you which loader and Minecraft version they target:
+Operators can search for a player, edit their nickname, assign or remove a title, create or update titles, upload PNG title images, and create title items from the in-game GUI. Players get a simple nickname setup flow and can use server-issued title items without needing admin commands.
+
+## Before you download
+
+Tagvyn is a **client + server mod**. Install the same compatible Tagvyn build on the server and on every connecting client.
+
+Choose a JAR that matches both your **Minecraft version** and **mod loader**. Build filenames use this format:
 
 ```text
 Tagvyn-<loader>-<minecraft-version>-<mod-version>.jar
 ```
 
-Always use the release/build whose loader and Minecraft version match your installation.
+The README is intentionally not tied to one permanent Minecraft version or loader. Check the release/build filename and release notes for the exact environment supported by a particular JAR.
+
+Tagvyn changes a player's **displayed nickname/title**. It does **not** replace the authenticated Minecraft account name, UUID, or GameProfile. Vanilla selectors and commands that target the real username continue to use the real username.
+
+## Installation
+
+1. Download the Tagvyn JAR that matches your Minecraft version and mod loader.
+2. Put it in the server's `mods` folder.
+3. Put the same compatible JAR in every connecting client's `mods` folder.
+4. Start the game/server normally.
 
 ## Using Tagvyn
 
 ### Players
 
-If a player joins without a nickname, Tagvyn shows a clickable message that opens the nickname setup screen.
+If a player joins without a nickname, Tagvyn shows a localized clickable message that opens the nickname setup screen.
 
 Players can also open the nickname screen with:
 
@@ -47,29 +59,21 @@ Players can also open the nickname screen with:
 
 ### Operators
 
-Operators only need one main command:
+Operators normally only need:
 
 ```text
 /tagvyn
 ```
 
-It opens the **Tagvyn Admin** dashboard. From there an operator can:
+For operators, this opens the **Tagvyn Admin** dashboard. From the GUI an operator can search and select online players, manage nicknames and nickname-change counts, assign or remove titles, create or edit text titles, upload or replace PNG title images, delete titles, create title items, and reload/synchronize Tagvyn data.
 
-- Search and select online players
-- Set or clear nicknames
-- Reset nickname-change counts
-- Search, assign, or remove titles
-- Create and edit text titles
-- Create or replace PNG image titles
-- Delete titles
-- Create title items
-- Reload Tagvyn data and synchronize title images
+Most administration is intentionally handled through the GUI instead of subcommands.
 
 ## Title Items
 
-An operator can select a registered title in the title manager and create a special **Name Tag** for it.
+An operator can select a registered title in the title manager and create a special **Name Tag** linked to that title.
 
-Players can right-click the item to equip the linked title. A successful use consumes one item outside Creative mode, and Tagvyn title Name Tags cannot be used to rename mobs.
+Players can right-click the item in the air to equip the linked title. A successful use consumes one item outside Creative mode. Tagvyn title Name Tags cannot be used to rename mobs.
 
 ## Languages
 
@@ -96,20 +100,18 @@ Unsupported languages fall back to the default English strings provided by the m
 | `/tagvyn` | Opens the admin dashboard for OPs, or the nickname screen for normal players |
 | `/tagvyn nick` | Opens the nickname screen directly |
 
-Most administration is intentionally handled through the GUI instead of subcommands.
-
 ## Compatibility
 
-Tagvyn may be released for multiple Minecraft versions and mod loaders over time.
-
-Do not treat this README as a fixed compatibility table. Check the **release/build filename** and release notes for the exact Minecraft version and loader supported by a particular JAR.
+Tagvyn may be released for multiple Minecraft versions and mod loaders over time. Use the loader and Minecraft version encoded in the JAR filename and documented in that release.
 
 ## Documentation
 
-This README is intentionally focused on installing and using Tagvyn.
+This README is focused on what Tagvyn does, why you might want it, what you need before installing it, and how to start using it.
 
-Technical documentation such as the API, configuration reference, data format, image-title internals, and porting notes belongs in the project **Wiki / developer documentation** rather than the main README.
+Technical material such as the public API, configuration reference, data formats, image-title internals, and porting notes belongs in the project **Wiki / developer documentation** rather than the main README.
 
 ## License
 
-**All Rights Reserved.**
+Tagvyn is distributed under a custom **All Rights Reserved** license. Official unmodified releases may be downloaded and used for normal Minecraft gameplay and server operation. Modification, redistribution, repackaging, or commercial use is not permitted unless the license or the copyright holder explicitly allows it.
+
+See [`LICENSE`](LICENSE) for the full terms.

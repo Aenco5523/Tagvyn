@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.6.4
+
+- Added a repository-level custom All Rights Reserved `LICENSE` with explicit permission for normal use of official unmodified releases.
+- Packaged the license into built JARs under `META-INF/LICENSE`.
+- Finalized the README around three user-facing questions: what Tagvyn adds, why someone would use it, and what users must know before downloading.
+- Clarified that Tagvyn requires matching client/server installations and does not replace authenticated Minecraft usernames, UUIDs, or GameProfiles.
+- Kept README compatibility guidance release-agnostic so supported loaders and Minecraft versions are determined by each release/JAR filename rather than hardcoded globally.
+
 ## 0.6.3
 
 - Reworked player management around scrolling instead of trying to fit every control into one screen.
