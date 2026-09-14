@@ -7,12 +7,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 
-/**
- * Stable public integration surface for Tagvyn.
- *
- * <p>The interface deliberately depends only on Minecraft/Java types so the same API package can be
- * retained when Tagvyn is ported to Fabric, Forge, or newer Minecraft versions.</p>
- */
+/** Stable public integration surface for Tagvyn. */
 public interface TagvynApi {
     IdentitySnapshot getIdentity(Player player);
 
@@ -39,19 +34,21 @@ public interface TagvynApi {
 
     Collection<TagvynTitle> getTitles();
 
-    /**
-     * Registers a title and persists it to Tagvyn's title configuration.
-     *
-     * @param title title definition
-     * @param overwrite whether an existing title with the same id may be replaced
-     * @return true when the title was stored
-     */
+    /** Registers a text title or an advanced externally-provided font/glyph title. */
     boolean registerTitle(TagvynTitle title, boolean overwrite);
 
-    /** Removes a title from the registry and persisted title configuration. */
+    /**
+     * Registers a normal PNG image as a title. Tagvyn stores and distributes the PNG and creates
+     * the required client rendering resources automatically.
+     */
+    boolean registerImageTitle(String id, String text, int color, byte[] png, boolean overwrite);
+
+    /** Returns the PNG backing an uploaded image title, when one exists. */
+    Optional<byte[]> getTitleImage(String id);
+
     boolean unregisterTitle(String id);
 
-    /** Refreshes currently-online players after title definitions were changed through the API. */
+    /** Refreshes online title snapshots and synchronizes uploaded image assets to clients. */
     void refreshTitles(MinecraftServer server);
 
     Component formatDisplayName(Player player, Component fallbackName, boolean includeTitle);

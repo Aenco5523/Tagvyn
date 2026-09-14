@@ -7,7 +7,9 @@ import dev.aenco.tagvyn.api.TagvynTitle;
 import dev.aenco.tagvyn.data.IdentityData;
 import dev.aenco.tagvyn.data.TagvynAttachments;
 import dev.aenco.tagvyn.display.TagvynDisplay;
+import dev.aenco.tagvyn.network.TagvynNetwork;
 import dev.aenco.tagvyn.title.TitleDefinition;
+import dev.aenco.tagvyn.title.TitleImageStore;
 import dev.aenco.tagvyn.title.TitleRegistry;
 import java.util.Collection;
 import java.util.List;
@@ -84,6 +86,28 @@ public final class NeoForgeTagvynApi implements TagvynApi {
     }
 
     @Override
+    public boolean registerImageTitle(String id, String text, int color, byte[] png, boolean overwrite) {
+        if (!TitleRegistry.isValidId(id) || !TitleImageStore.validate(png).valid()) return false;
+        if (!overwrite && TitleRegistry.get(id).isPresent()) return false;
+
+        Optional<byte[]> previous = TitleImageStore.read(id);
+        if (!TitleImageStore.save(id, png)) return false;
+        if (!TitleRegistry.registerUploadedImage(id, text, color, overwrite)) {
+            if (previous.isPresent()) TitleImageStore.save(id, previous.get());
+            else TitleImageStore.delete(id);
+            return false;
+        }
+        return true;
+    }
+
+    @Override
+    public Optional<byte[]> getTitleImage(String id) {
+        Optional<TitleDefinition> definition = TitleRegistry.get(id);
+        if (definition.isEmpty() || !TitleRegistry.isUploadedImage(definition.get())) return Optional.empty();
+        return TitleImageStore.read(id).map(byte[]::clone);
+    }
+
+    @Override
     public boolean unregisterTitle(String id) {
         return TitleRegistry.remove(id);
     }
@@ -91,6 +115,7 @@ public final class NeoForgeTagvynApi implements TagvynApi {
     @Override
     public void refreshTitles(MinecraftServer server) {
         TagvynService.refreshAllTitleSnapshots(server);
+        TagvynNetwork.syncUploadedTitleImagesToAll(server);
     }
 
     @Override

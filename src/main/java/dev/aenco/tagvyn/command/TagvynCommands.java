@@ -90,28 +90,6 @@ public final class TagvynCommands {
                                                                         StringArgumentType.getString(context, "color"),
                                                                         StringArgumentType.getString(context, "text")
                                                                 ))))))
-                                .then(Commands.literal("image")
-                                        .then(Commands.argument("id", StringArgumentType.word())
-                                                .then(Commands.argument("color", StringArgumentType.word())
-                                                        .then(Commands.argument("font", StringArgumentType.string())
-                                                                .then(Commands.argument("glyph", StringArgumentType.string())
-                                                                        .executes(context -> createImageTitle(
-                                                                                context.getSource(),
-                                                                                StringArgumentType.getString(context, "id"),
-                                                                                StringArgumentType.getString(context, "color"),
-                                                                                StringArgumentType.getString(context, "font"),
-                                                                                StringArgumentType.getString(context, "glyph"),
-                                                                                ""
-                                                                        ))
-                                                                        .then(Commands.argument("text", StringArgumentType.greedyString())
-                                                                                .executes(context -> createImageTitle(
-                                                                                        context.getSource(),
-                                                                                        StringArgumentType.getString(context, "id"),
-                                                                                        StringArgumentType.getString(context, "color"),
-                                                                                        StringArgumentType.getString(context, "font"),
-                                                                                        StringArgumentType.getString(context, "glyph"),
-                                                                                        StringArgumentType.getString(context, "text")
-                                                                                )))))))))
                         .then(Commands.literal("delete")
                                 .requires(TagvynCommands::isOperator)
                                 .then(Commands.argument("id", StringArgumentType.word())
@@ -119,6 +97,9 @@ public final class TagvynCommands {
                                                 context.getSource(),
                                                 StringArgumentType.getString(context, "id")
                                         )))))
+                .then(Commands.literal("titles")
+                        .requires(TagvynCommands::isOperator)
+                        .executes(context -> openTitleManager(context.getSource())))
                 .then(Commands.literal("reload")
                         .requires(TagvynCommands::isOperator)
                         .executes(context -> reload(context.getSource())))
@@ -127,6 +108,11 @@ public final class TagvynCommands {
 
     private static int openNicknameGui(CommandSourceStack source) throws CommandSyntaxException {
         TagvynNetwork.openNicknameScreen(source.getPlayerOrException());
+        return 1;
+    }
+
+    private static int openTitleManager(CommandSourceStack source) throws CommandSyntaxException {
+        TagvynNetwork.openTitleManagerScreen(source.getPlayerOrException());
         return 1;
     }
 
@@ -236,22 +222,6 @@ public final class TagvynCommands {
         return registerTitle(source, new TagvynTitle(id, text, color, "", ""));
     }
 
-    private static int createImageTitle(
-            CommandSourceStack source,
-            String id,
-            String colorText,
-            String font,
-            String glyph,
-            String text
-    ) {
-        Integer color = parseColor(colorText);
-        if (color == null) {
-            source.sendFailure(Component.translatable("tagvyn.message.title_color_invalid", colorText));
-            return 0;
-        }
-        return registerTitle(source, new TagvynTitle(id, text, color, font, glyph));
-    }
-
     private static int registerTitle(CommandSourceStack source, TagvynTitle title) {
         if (TagvynAPI.get().getTitle(title.id()).isPresent()) {
             source.sendFailure(Component.translatable("tagvyn.message.title_exists", title.id()));
@@ -278,6 +248,7 @@ public final class TagvynCommands {
 
     private static int reload(CommandSourceStack source) {
         TagvynService.reloadTitles(source.getServer());
+        TagvynNetwork.syncUploadedTitleImagesToAll(source.getServer());
         source.sendSuccess(() -> Component.translatable("tagvyn.message.reload"), true);
         return 1;
     }

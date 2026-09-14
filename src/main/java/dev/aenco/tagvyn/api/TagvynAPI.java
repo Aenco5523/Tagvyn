@@ -4,7 +4,7 @@ import java.util.Objects;
 
 /** Entry point for integrations from other mods. */
 public final class TagvynAPI {
-    public static final String API_VERSION = "1";
+    public static final String API_VERSION = "2";
 
     private static volatile TagvynApi instance;
 
@@ -22,7 +22,6 @@ public final class TagvynAPI {
         return instance != null;
     }
 
-    /** Internal bootstrap hook used by the platform implementation. */
     public static synchronized void bootstrap(TagvynApi api) {
         Objects.requireNonNull(api, "api");
         if (instance != null && instance != api) {
