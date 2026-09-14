@@ -19,5 +19,5 @@ jobs:
       - run: gradle build --stacktrace
       - uses: actions/upload-artifact@v4
         with:
-          name: Tagvyn-neoforge
-          path: build/libs/Tagvyn-neoforge-*.jar
+          name: Tagvyn-neoforge-1.21.1
+          path: build/libs/Tagvyn-neoforge-1.21.1-*.jar
