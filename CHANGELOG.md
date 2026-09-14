@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.5.0
+
+- Reworked player administration for larger servers: online players are now shown in a searchable, scrollable list instead of being selected one-by-one with arrow buttons.
+- Player search matches both the authenticated Minecraft username and the Tagvyn nickname.
+- Reworked title assignment in the player manager into a searchable, scrollable title list.
+- Preserves the currently managed player after nickname/title actions instead of jumping back to the first online player.
+- Reworked title management into a selectable list workflow: click a title to load it into the editor, then save text/color changes, replace its PNG, or delete it without retyping the ID.
+- Added title search, scrolling, a clear New Title mode, and selected-title persistence after saves.
+- Existing title IDs are treated as stable identifiers while editing.
+- Added server-side title metadata updates that preserve existing PNG/font data.
+- PNG uploads can replace the selected title image safely while retaining the existing image if the update fails.
+- Bumped the network protocol for the updated manager payloads.
+- Removed stale command documentation. The current command tree is `/tagvyn` and `/tagvyn nick`; OP management is GUI-first through `/tagvyn`.
+- Updated the in-game mod description to match the GUI-first workflow.
+
 ## 0.4.3
 
 - Reworked the title manager into a responsive layout so registered titles no longer fall off the bottom of short game windows.
