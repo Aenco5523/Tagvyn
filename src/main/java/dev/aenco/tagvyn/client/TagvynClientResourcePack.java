@@ -10,6 +10,7 @@ import dev.aenco.tagvyn.network.TitleImageManifestPayload;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -69,23 +70,15 @@ public final class TagvynClientResourcePack {
             Files.createDirectories(textureDir);
             Files.createDirectories(fontDir);
 
-            try (var files = Files.list(textureDir)) {
-                files.filter(path -> path.getFileName().toString().endsWith(".png"))
-                        .forEach(path -> {
-                            try {
-                                Files.deleteIfExists(path);
-                            } catch (Exception exception) {
-                                Tagvyn.LOGGER.warn("Failed to clear generated title texture {}", path, exception);
-                            }
-                        });
-            }
-
             JsonObject root = new JsonObject();
             JsonArray providers = new JsonArray();
+            Map<String, byte[]> desiredImages = new LinkedHashMap<>();
+
             for (Map.Entry<String, String> entry : PENDING_GLYPHS.entrySet()) {
                 byte[] png = PENDING_IMAGES.get(entry.getKey());
                 if (png == null) continue;
-                Files.write(textureDir.resolve(entry.getKey() + ".png"), png);
+
+                desiredImages.put(entry.getKey() + ".png", png);
 
                 JsonObject provider = new JsonObject();
                 provider.addProperty("type", "bitmap");
@@ -98,16 +91,60 @@ public final class TagvynClientResourcePack {
                 providers.add(provider);
             }
             root.add("providers", providers);
-            Files.writeString(
-                    fontDir.resolve("uploaded.json"),
-                    GSON.toJson(root) + System.lineSeparator(),
-                    StandardCharsets.UTF_8
-            );
 
-            Minecraft.getInstance().reloadResourcePacks();
+            boolean changed = syncImages(textureDir, desiredImages);
+            String fontJson = GSON.toJson(root) + System.lineSeparator();
+            changed |= writeStringIfChanged(fontDir.resolve("uploaded.json"), fontJson);
+
+            PENDING_GLYPHS.clear();
+            PENDING_IMAGES.clear();
+
+            if (changed) {
+                Minecraft.getInstance().reloadResourcePacks().exceptionally(exception -> {
+                    Tagvyn.LOGGER.error("Failed to reload generated title image pack", exception);
+                    return null;
+                });
+            }
         } catch (Exception exception) {
             Tagvyn.LOGGER.error("Failed to rebuild generated title image pack", exception);
         }
+    }
+
+    private static boolean syncImages(Path textureDir, Map<String, byte[]> desiredImages) throws Exception {
+        boolean changed = false;
+
+        try (var files = Files.list(textureDir)) {
+            for (Path path : files.filter(file -> file.getFileName().toString().endsWith(".png")).toList()) {
+                String fileName = path.getFileName().toString();
+                byte[] desired = desiredImages.remove(fileName);
+                if (desired == null) {
+                    Files.deleteIfExists(path);
+                    changed = true;
+                    continue;
+                }
+
+                byte[] current = Files.readAllBytes(path);
+                if (!Arrays.equals(current, desired)) {
+                    Files.write(path, desired);
+                    changed = true;
+                }
+            }
+        }
+
+        for (Map.Entry<String, byte[]> entry : desiredImages.entrySet()) {
+            Files.write(textureDir.resolve(entry.getKey()), entry.getValue());
+            changed = true;
+        }
+
+        return changed;
+    }
+
+    private static boolean writeStringIfChanged(Path path, String content) throws Exception {
+        if (Files.exists(path) && Files.readString(path, StandardCharsets.UTF_8).equals(content)) {
+            return false;
+        }
+        Files.writeString(path, content, StandardCharsets.UTF_8);
+        return true;
     }
 
     private static void onAddPackFinders(AddPackFindersEvent event) {
