@@ -9,7 +9,9 @@ import dev.aenco.tagvyn.service.TagvynService;
 import dev.aenco.tagvyn.title.TitleDefinition;
 import dev.aenco.tagvyn.title.TitleImageStore;
 import dev.aenco.tagvyn.title.TitleRegistry;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
@@ -21,7 +23,7 @@ import net.neoforged.neoforge.network.handling.IPayloadContext;
 import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 
 public final class TagvynNetwork {
-    private static final String PROTOCOL_VERSION = "3";
+    private static final String PROTOCOL_VERSION = "4";
 
     private TagvynNetwork() {}
 
@@ -58,6 +60,10 @@ public final class TagvynNetwork {
     }
 
     public static void openPlayerManagerScreen(ServerPlayer player) {
+        openPlayerManagerScreen(player, "");
+    }
+
+    public static void openPlayerManagerScreen(ServerPlayer player, String selectedUsername) {
         if (!isOperator(player)) return;
         List<OpenPlayerManagerPayload.PlayerSummary> players = player.server.getPlayerList().getPlayers().stream()
                 .map(target -> {
@@ -70,12 +76,24 @@ public final class TagvynNetwork {
                             TagvynService.remainingChanges(data)
                     );
                 })
+                .sorted(Comparator.comparing(OpenPlayerManagerPayload.PlayerSummary::username, String.CASE_INSENSITIVE_ORDER))
                 .toList();
-        List<String> titles = TitleRegistry.all().stream().map(TitleDefinition::id).toList();
-        PacketDistributor.sendToPlayer(player, new OpenPlayerManagerPayload(players, titles));
+        List<String> titles = TitleRegistry.all().stream()
+                .map(TitleDefinition::id)
+                .sorted(String.CASE_INSENSITIVE_ORDER)
+                .toList();
+        PacketDistributor.sendToPlayer(player, new OpenPlayerManagerPayload(
+                players,
+                titles,
+                selectedUsername == null ? "" : selectedUsername
+        ));
     }
 
     public static void openTitleManagerScreen(ServerPlayer player) {
+        openTitleManagerScreen(player, "");
+    }
+
+    public static void openTitleManagerScreen(ServerPlayer player, String selectedTitleId) {
         if (!isOperator(player)) return;
         List<OpenTitleManagerPayload.TitleSummary> summaries = TitleRegistry.all().stream()
                 .map(title -> new OpenTitleManagerPayload.TitleSummary(
@@ -84,8 +102,12 @@ public final class TagvynNetwork {
                         title.color(),
                         title.hasImage()
                 ))
+                .sorted(Comparator.comparing(OpenTitleManagerPayload.TitleSummary::id, String.CASE_INSENSITIVE_ORDER))
                 .toList();
-        PacketDistributor.sendToPlayer(player, new OpenTitleManagerPayload(summaries));
+        PacketDistributor.sendToPlayer(player, new OpenTitleManagerPayload(
+                summaries,
+                selectedTitleId == null ? "" : selectedTitleId
+        ));
     }
 
     public static void syncUploadedTitleImages(ServerPlayer player) {
@@ -133,6 +155,7 @@ public final class TagvynNetwork {
         registrar.playToServer(AdminDashboardActionPayload.TYPE, AdminDashboardActionPayload.STREAM_CODEC, TagvynNetwork::handleAdminDashboardAction);
         registrar.playToServer(AdminPlayerActionPayload.TYPE, AdminPlayerActionPayload.STREAM_CODEC, TagvynNetwork::handleAdminPlayerAction);
         registrar.playToServer(CreateTextTitlePayload.TYPE, CreateTextTitlePayload.STREAM_CODEC, TagvynNetwork::handleCreateTextTitle);
+        registrar.playToServer(UpdateTitlePayload.TYPE, UpdateTitlePayload.STREAM_CODEC, TagvynNetwork::handleUpdateTitle);
         registrar.playToServer(UploadImageTitlePayload.TYPE, UploadImageTitlePayload.STREAM_CODEC, TagvynNetwork::handleUploadImageTitle);
         registrar.playToServer(DeleteTitlePayload.TYPE, DeleteTitlePayload.STREAM_CODEC, TagvynNetwork::handleDeleteTitle);
     }
@@ -241,7 +264,7 @@ public final class TagvynNetwork {
                 }
                 default -> {}
             }
-            openPlayerManagerScreen(admin);
+            openPlayerManagerScreen(admin, target.getGameProfile().getName());
         });
     }
 
@@ -250,6 +273,7 @@ public final class TagvynNetwork {
             if (!(context.player() instanceof ServerPlayer player) || !isOperator(player)) return;
             if (TitleRegistry.get(payload.id()).isPresent()) {
                 player.sendSystemMessage(Component.translatable("tagvyn.message.title_exists", payload.id()));
+                openTitleManagerScreen(player, payload.id());
                 return;
             }
             boolean created = TitleRegistry.register(new TitleDefinition(
@@ -265,7 +289,38 @@ public final class TagvynNetwork {
             }
             TagvynService.refreshAllTitleSnapshots(player.server);
             player.sendSystemMessage(Component.translatable("tagvyn.message.title_created", payload.id()));
-            openTitleManagerScreen(player);
+            openTitleManagerScreen(player, payload.id());
+        });
+    }
+
+    private static void handleUpdateTitle(UpdateTitlePayload payload, IPayloadContext context) {
+        context.enqueueWork(() -> {
+            if (!(context.player() instanceof ServerPlayer player) || !isOperator(player)) return;
+            String id = payload.id().trim().toLowerCase();
+            Optional<TitleDefinition> existing = TitleRegistry.get(id);
+            if (existing.isEmpty()) {
+                player.sendSystemMessage(Component.translatable("tagvyn.message.title_missing", id));
+                openTitleManagerScreen(player);
+                return;
+            }
+
+            TitleDefinition old = existing.get();
+            boolean updated = TitleRegistry.register(new TitleDefinition(
+                    old.id(),
+                    payload.text(),
+                    payload.color(),
+                    old.imageFont(),
+                    old.imageGlyph()
+            ), true);
+            if (!updated) {
+                player.sendSystemMessage(Component.translatable("tagvyn.message.title_invalid", id));
+                openTitleManagerScreen(player, id);
+                return;
+            }
+
+            TagvynService.refreshAllTitleSnapshots(player.server);
+            player.sendSystemMessage(Component.translatable("tagvyn.message.title_updated", id));
+            openTitleManagerScreen(player, id);
         });
     }
 
@@ -277,36 +332,41 @@ public final class TagvynNetwork {
                 player.sendSystemMessage(Component.translatable("tagvyn.message.title_invalid", id));
                 return;
             }
-            if (TitleRegistry.get(id).isPresent()) {
-                player.sendSystemMessage(Component.translatable("tagvyn.message.title_exists", id));
-                return;
-            }
 
             byte[] png = payload.png();
             TitleImageStore.Validation validation = TitleImageStore.validate(png);
             if (!validation.valid()) {
                 player.sendSystemMessage(Component.translatable("tagvyn.message.title_image_invalid"));
+                openTitleManagerScreen(player, id);
                 return;
             }
+
+            Optional<byte[]> previousImage = TitleImageStore.read(id);
             if (!TitleImageStore.save(id, png)) {
                 player.sendSystemMessage(Component.translatable("tagvyn.message.title_image_save_failed"));
+                openTitleManagerScreen(player, id);
                 return;
             }
-            if (!TitleRegistry.registerUploadedImage(id, payload.text(), payload.color(), false)) {
-                TitleImageStore.delete(id);
+            if (!TitleRegistry.registerUploadedImage(id, payload.text(), payload.color(), true)) {
+                if (previousImage.isPresent()) {
+                    TitleImageStore.save(id, previousImage.get());
+                } else {
+                    TitleImageStore.delete(id);
+                }
                 player.sendSystemMessage(Component.translatable("tagvyn.message.title_invalid", id));
+                openTitleManagerScreen(player, id);
                 return;
             }
 
             TagvynService.refreshAllTitleSnapshots(player.server);
             syncUploadedTitleImagesToAll(player.server);
             player.sendSystemMessage(Component.translatable(
-                    "tagvyn.message.title_image_created",
+                    "tagvyn.message.title_image_saved",
                     id,
                     validation.width(),
                     validation.height()
             ));
-            openTitleManagerScreen(player);
+            openTitleManagerScreen(player, id);
         });
     }
 
@@ -315,6 +375,7 @@ public final class TagvynNetwork {
             if (!(context.player() instanceof ServerPlayer player) || !isOperator(player)) return;
             if (!TitleRegistry.remove(payload.id())) {
                 player.sendSystemMessage(Component.translatable("tagvyn.message.title_missing", payload.id()));
+                openTitleManagerScreen(player);
                 return;
             }
             TagvynService.refreshAllTitleSnapshots(player.server);

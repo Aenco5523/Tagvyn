@@ -8,13 +8,17 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 
-public record OpenTitleManagerPayload(List<TitleSummary> titles) implements CustomPacketPayload {
+public record OpenTitleManagerPayload(
+        List<TitleSummary> titles,
+        String selectedTitleId
+) implements CustomPacketPayload {
     public static final Type<OpenTitleManagerPayload> TYPE = new Type<>(
             ResourceLocation.fromNamespaceAndPath(Tagvyn.MOD_ID, "open_title_manager")
     );
 
     public OpenTitleManagerPayload {
         titles = List.copyOf(titles);
+        selectedTitleId = selectedTitleId == null ? "" : selectedTitleId;
     }
 
     public static final StreamCodec<RegistryFriendlyByteBuf, OpenTitleManagerPayload> STREAM_CODEC = StreamCodec.of(
@@ -26,6 +30,7 @@ public record OpenTitleManagerPayload(List<TitleSummary> titles) implements Cust
                     buf.writeInt(title.color());
                     buf.writeBoolean(title.image());
                 }
+                buf.writeUtf(payload.selectedTitleId(), 64);
             },
             buf -> {
                 int count = buf.readVarInt();
@@ -39,7 +44,7 @@ public record OpenTitleManagerPayload(List<TitleSummary> titles) implements Cust
                             buf.readBoolean()
                     ));
                 }
-                return new OpenTitleManagerPayload(titles);
+                return new OpenTitleManagerPayload(titles, buf.readUtf(64));
             }
     );
 
