@@ -15,7 +15,7 @@ public final class TagvynMessages {
                 .withStyle(style -> style
                         .withColor(ChatFormatting.AQUA)
                         .withUnderlined(true)
-                        .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/tagvyn nick gui"))
+                        .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/tagvyn nick"))
                         .withHoverEvent(new HoverEvent(
                                 HoverEvent.Action.SHOW_TEXT,
                                 Component.translatable("tagvyn.message.nickname_prompt_hover")
