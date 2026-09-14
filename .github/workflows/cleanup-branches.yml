@@ -1,0 +1,42 @@
+name: cleanup-merged-branches
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    types: [closed]
+
+permissions:
+  contents: write
+
+jobs:
+  cleanup:
+    if: github.event_name == 'push' || github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Delete merged work branches
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin '+refs/heads/*:refs/remotes/origin/*' --prune
+
+          while IFS= read -r remote; do
+            [ -n "$remote" ] || continue
+            branch="${remote#origin/}"
+
+            case "$branch" in
+              feature/*|ci/*) ;;
+              *) continue ;;
+            esac
+
+            if git merge-base --is-ancestor "$remote" origin/main; then
+              echo "Deleting merged branch: $branch"
+              git push origin --delete "$branch"
+            else
+              echo "Keeping unmerged branch: $branch"
+            fi
+          done < <(git for-each-ref --format='%(refname:short)' refs/remotes/origin/feature refs/remotes/origin/ci)
