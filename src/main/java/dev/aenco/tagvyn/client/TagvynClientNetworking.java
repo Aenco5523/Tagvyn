@@ -1,6 +1,8 @@
 package dev.aenco.tagvyn.client;
 
+import dev.aenco.tagvyn.network.OpenAdminDashboardPayload;
 import dev.aenco.tagvyn.network.OpenNicknameScreenPayload;
+import dev.aenco.tagvyn.network.OpenPlayerManagerPayload;
 import dev.aenco.tagvyn.network.OpenTitleManagerPayload;
 import dev.aenco.tagvyn.network.TitleImageDataPayload;
 import dev.aenco.tagvyn.network.TitleImageManifestPayload;
@@ -13,6 +15,14 @@ public final class TagvynClientNetworking {
 
     public static void handleOpenNicknameScreen(OpenNicknameScreenPayload payload, IPayloadContext context) {
         context.enqueueWork(() -> Minecraft.getInstance().setScreen(new NicknameScreen(payload)));
+    }
+
+    public static void handleOpenAdminDashboard(OpenAdminDashboardPayload payload, IPayloadContext context) {
+        context.enqueueWork(() -> Minecraft.getInstance().setScreen(new AdminDashboardScreen()));
+    }
+
+    public static void handleOpenPlayerManager(OpenPlayerManagerPayload payload, IPayloadContext context) {
+        context.enqueueWork(() -> Minecraft.getInstance().setScreen(new PlayerManagerScreen(payload)));
     }
 
     public static void handleOpenTitleManager(OpenTitleManagerPayload payload, IPayloadContext context) {
