@@ -1,0 +1,60 @@
+name: Publish GitHub Wiki
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "docs/wiki/**"
+      - ".github/workflows/publish-wiki.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  publish-wiki:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Publish docs/wiki to the real GitHub Wiki
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          WIKI_DIR="${RUNNER_TEMP}/tagvyn-wiki"
+          WIKI_URL="https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.wiki.git"
+          rm -rf "${WIKI_DIR}"
+
+          if ! git clone "${WIKI_URL}" "${WIKI_DIR}"; then
+            mkdir -p "${WIKI_DIR}"
+            git -C "${WIKI_DIR}" init
+            git -C "${WIKI_DIR}" remote add origin "${WIKI_URL}"
+          fi
+
+          cp docs/wiki/*.md "${WIKI_DIR}/"
+          cd "${WIKI_DIR}"
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          if ! git rev-parse --verify HEAD >/dev/null 2>&1; then
+            git checkout -B master
+          fi
+
+          git add -- '*.md'
+          if git diff --cached --quiet; then
+            echo "Wiki is already up to date."
+            exit 0
+          fi
+
+          git commit -m "docs: publish Tagvyn developer wiki"
+          BRANCH="$(git branch --show-current)"
+          if [ -z "${BRANCH}" ]; then
+            BRANCH="master"
+            git checkout -B "${BRANCH}"
+          fi
+          git push origin "HEAD:${BRANCH}"
