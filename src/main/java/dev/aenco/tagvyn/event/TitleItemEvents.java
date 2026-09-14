@@ -22,12 +22,10 @@ public final class TitleItemEvents {
         if (event.getLevel().isClientSide()) return;
         if (!(event.getEntity() instanceof ServerPlayer player)) return;
 
+        String titleId = TitleItemService.titleId(event.getItemStack());
         TitleItemService.RedeemResult result = TitleItemService.redeem(player, event.getItemStack());
         switch (result) {
-            case SUCCESS -> player.sendSystemMessage(Component.translatable(
-                    "tagvyn.message.title_item_used",
-                    TitleItemService.titleId(event.getItemStack())
-            ));
+            case SUCCESS -> player.sendSystemMessage(Component.translatable("tagvyn.message.title_item_used", titleId));
             case ALREADY_EQUIPPED -> player.sendSystemMessage(Component.translatable("tagvyn.message.title_item_already"));
             case MISSING_TITLE -> player.sendSystemMessage(Component.translatable("tagvyn.message.title_item_invalid"));
             case NOT_TITLE_ITEM -> {}
