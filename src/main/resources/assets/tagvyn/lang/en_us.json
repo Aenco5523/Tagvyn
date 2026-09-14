@@ -3,7 +3,7 @@
   "tagvyn.message.nickname_cleared": "Nickname cleared.",
   "tagvyn.message.nickname_limit": "You have no nickname changes left (%s/%s).",
   "tagvyn.message.nickname_invalid": "That nickname is not allowed.",
-  "tagvyn.message.nickname_prompt": "Click this message to set your nickname.",
+  "tagvyn.message.nickname_prompt": "Your nickname is not set. Click this message to set your nickname.",
   "tagvyn.message.nickname_prompt_hover": "Click to open the nickname setup screen.",
   "tagvyn.message.title_set": "Title set to %s.",
   "tagvyn.message.title_cleared": "Title cleared.",
